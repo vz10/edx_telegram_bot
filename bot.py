@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from telegram import Updater, ReplyKeyboardMarkup
-from config import token
+from telegram import Updater, ReplyKeyboardMarkup, Emoji
+from config import *
 import re
+import json
 import requests
 
 updater = Updater(token=token)
@@ -34,13 +35,21 @@ def error(bot, update, error):
     print 'Update %s caused error %s' % (update, error)
 
 def courses(bot, update):
-    message = 'What fucking course are you talking about'
-    bot.sendMessage(chat_id=update.message.chat_id,
-                    text=message)
+    result = requests.get(courses_api).text
+    result = json.loads(result)
+    courses_lst = result.get('results')
+    if not courses_lst:
+        msg = 'Ублюдок, мать твою...'
+        bot.sendMessage(chat_id=update.message.chat_id, text=msg)
+    else:
+        msg = 'А вот и курсы, ублюдок, мать твою!'
+        keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + course['name']] for course in courses_lst]
+        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+        bot.sendMessage(chat_id=update.message.chat_id, text=msg, reply_markup=reply_markup)
 
 def help(bot, update):
     bot.sendPhoto(chat_id=update.message.chat_id, photo='http://risovach.ru/upload/2014/08/mem/spanch-bob_58260721_orig_.jpg')
-    
+
 def keyboard(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
                     text='keyboard')
@@ -63,15 +72,12 @@ def reminder(bot, update):
     j.put(job, 30, repeat=False)
 
 
-
-
-
-
 dispatcher.addTelegramCommandHandler('hi', start)
 dispatcher.addTelegramCommandHandler('die', die)
 dispatcher.addTelegramCommandHandler('help', help)
 dispatcher.addTelegramCommandHandler('key', keyboard)
 dispatcher.addTelegramCommandHandler('reminder', reminder)
+dispatcher.addTelegramCommandHandler('courses', courses)
 
 dispatcher.addTelegramMessageHandler(echo)
 dispatcher.addTelegramRegexHandler(r"what.*course", courses)
@@ -81,5 +87,3 @@ dispatcher.addUnknownTelegramCommandHandler(unknown)
 dispatcher.addErrorHandler(error)
 
 updater.start_polling()
-
-
