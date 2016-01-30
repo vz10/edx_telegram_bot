@@ -55,11 +55,8 @@ def courses(bot, update):
         bot.sendMessage(chat_id=update.message.chat_id, text=msg, reply_markup=reply_markup)
 
 def help(bot, update):
-    print 'help'
     chat_id=update.message.chat_id
-    print commands
     for (command, description) in commands.items(): 
-        print (command, description)
         bot.sendMessage(chat_id=chat_id, text=command+' - '+description)
 
     bot.sendPhoto(chat_id=update.message.chat_id, photo='http://risovach.ru/upload/2014/08/mem/spanch-bob_58260721_orig_.jpg')
