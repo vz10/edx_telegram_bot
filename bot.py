@@ -10,7 +10,14 @@ updater = Updater(token=token)
 
 dispatcher = updater.dispatcher
 
+commands = {
+    '/hi':'Try it if you want to say hi to the Bot',
+    '/courses': 'Try it if you want to see all available courses'
+}
+
+
 j = updater.job_queue
+
 
 def start(bot, update):
     print bot
@@ -48,6 +55,9 @@ def courses(bot, update):
         bot.sendMessage(chat_id=update.message.chat_id, text=msg, reply_markup=reply_markup)
 
 def help(bot, update):
+    chat_id=update.message.chat_id
+    for (command, description) in commands.items:        bot.sendMessage(chat_id=chat_id, text=command+' - '+description)
+
     bot.sendPhoto(chat_id=update.message.chat_id, photo='http://risovach.ru/upload/2014/08/mem/spanch-bob_58260721_orig_.jpg')
 
 def keyboard(bot, update):
