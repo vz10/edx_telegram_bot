@@ -1,3 +1,6 @@
+# Pycharm
+.idea
+
 venv
 *.pyc
 config.py

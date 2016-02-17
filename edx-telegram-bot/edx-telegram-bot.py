@@ -14,22 +14,21 @@ updater = Updater(token=token, workers=10)
 dispatcher = updater.dispatcher
 
 commands = {
-    '/hi':'Try it if you want to say hi to the Bot',
+    '/hi': 'Try it if you want to say hi to the Bot',
     '/courses': 'You can choose what kind of courses you are interesting in',
     '/all_courses': "You can see all available courses",
     '/my_courses': "You can see only your courses",
 }
-
 
 j = updater.job_queue
 
 
 def hi(bot, update):
     print bot
-    print '*'*50
+    print '*' * 50
     print update
-    print '='*50
-    chat_id=update.message.chat_id
+    print '=' * 50
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     time.sleep(1)
     bot.sendMessage(chat_id=chat_id, text="Hello, human, I'm glad to see you")
@@ -38,6 +37,7 @@ def hi(bot, update):
     except e:
         print e
 
+
 def get_course_description(bot, course_name, chat_id):
     result = requests.get(courses_api).text
     result = json.loads(result)
@@ -45,18 +45,19 @@ def get_course_description(bot, course_name, chat_id):
     for each in courses_lst:
         if each['name'] == course_name:
             course_id = urllib.pathname2url(each['id'])
-            result = requests.get(description_api+course_id).text
+            result = requests.get(description_api + course_id).text
             result = json.loads(result)
             message = result['short_description']
             if message == 'null':
                 bot.sendMessage(chat_id=chat_id, text="I'm sorry, but this course has no description")
-            else:     
-                bot.sendMessage(chat_id=chat_id, text="*Short course description*", parse_mode=telegram.ParseMode.MARKDOWN)
+            else:
+                bot.sendMessage(chat_id=chat_id, text="*Short course description*",
+                                parse_mode=telegram.ParseMode.MARKDOWN)
                 bot.sendMessage(chat_id=chat_id, text=message)
 
-            
+
 def echo(bot, update):
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     message = update.message.text
     print update
@@ -69,17 +70,18 @@ def echo(bot, update):
         return
     if message.find(Emoji.ORANGE_BOOK.decode('utf-8')) == 0:
         courses(bot, update)
-        return 
+        return
     if message.find('hash::') == 0:
         sendHash(bot, update)
-        return 
+        return
 
     bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
     message = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
     bot.sendMessage(chat_id=chat_id, text=message)
 
+
 def unknown(bot, update):
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     time.sleep(1)
     bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
@@ -87,14 +89,17 @@ def unknown(bot, update):
     bot.sendMessage(chat_id=chat_id,
                     text=message)
 
+
 def die(bot, update):
     updater.stop()
+
 
 def error(bot, update, error):
     print 'Update %s caused error %s' % (update, error)
 
+
 def courses(bot, update):
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     result = requests.get(courses_api).text
     result = json.loads(result)
@@ -112,13 +117,13 @@ def courses(bot, update):
 
 
 def my_courses(bot, update):
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     time.sleep(1)
-    
-    response = requests.get(enroll_api+'?tel_name='+str(chat_id)).text
 
-    result = json.loads(response)    
+    response = requests.get(enroll_api + '?tel_name=' + str(chat_id)).text
+
+    result = json.loads(response)
     courses_lst = result.get('courses')
     if not courses_lst:
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAADMwIAAmONagABu635srr8N-0C')
@@ -131,8 +136,9 @@ def my_courses(bot, update):
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id, text=msg, reply_markup=reply_markup)
 
+
 def courses_menu(bot, update):
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     time.sleep(1)
     bot.sendSticker(chat_id=chat_id, sticker='BQADBAADowMAAmONagABt5jVJ_gj0CEC')
@@ -144,22 +150,23 @@ def courses_menu(bot, update):
 
 
 def help(bot, update):
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
     time.sleep(1)
     bot.sendPhoto(chat_id=update.message.chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
-    bot.sendMessage(chat_id=chat_id, text="I have a lot of raccoon-workers, all of them want to help you, but they not very smart so they can understand only such commands:")
+    bot.sendMessage(chat_id=chat_id,
+                    text="I have a lot of raccoon-workers, all of them want to help you, but they not very smart so they can understand only such commands:")
 
-    for (command, description) in commands.items(): 
-        bot.sendMessage(chat_id=chat_id, text=command+' - '+description)
+    for (command, description) in commands.items():
+        bot.sendMessage(chat_id=chat_id, text=command + ' - ' + description)
 
 
 def sendHash(bot, update):
     print 'sdfsdf'
     print update
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
     user_hash = update.message.text
-    response = requests.get(auth_api+'?token='+str(user_hash)+'&tel_name='+str(chat_id))
+    response = requests.get(auth_api + '?token=' + str(user_hash) + '&tel_name=' + str(chat_id))
     if response.status_code == 200:
         bot.sendMessage(chat_id=chat_id, text="Registration OK")
     else:
@@ -168,9 +175,11 @@ def sendHash(bot, update):
 
 def reminder(bot, update):
     print 'reminder'
-    chat_id=update.message.chat_id
+    chat_id = update.message.chat_id
+
     def job(bot):
         bot.sendMessage(chat_id=chat_id, text='A single message with 30s delay')
+
     j.put(job, 30, repeat=False)
 
 
@@ -181,7 +190,6 @@ dispatcher.addTelegramCommandHandler('reminder', reminder)
 dispatcher.addTelegramCommandHandler('courses', courses_menu)
 dispatcher.addTelegramCommandHandler('all_courses', courses)
 dispatcher.addTelegramCommandHandler('my_courses', my_courses)
-
 
 dispatcher.addTelegramMessageHandler(echo)
 dispatcher.addTelegramRegexHandler(r"what.*course", courses)
