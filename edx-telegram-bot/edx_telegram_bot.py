@@ -2,12 +2,12 @@
 
 from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 import telegram
+from decorators import singleton
 from config import *
 import json
 import requests
 import time
 import urllib
-
 
 class RaccoonBot(object):
     def __init__(self):
@@ -22,7 +22,8 @@ class RaccoonBot(object):
             '/all_courses': "You can see all available courses",
             '/my_courses': "You can see only your courses",
         }
-
+        print "*" * 88
+        print "run bot"
         self.updater = Updater(token=token, workers=10)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
@@ -192,5 +193,6 @@ class RaccoonBot(object):
         self.j.put(job, 30, repeat=False)
 
 
+print "start"
 
-RaccoonBot()
+# RaccoonBot()

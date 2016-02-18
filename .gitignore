@@ -4,3 +4,18 @@
 venv
 *.pyc
 config.py
+
+# Packaging files:
+*.eggs
+*.egg-info
+
+# Installation artifacts
+src
+
+# Mac
+.DS_Store
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini

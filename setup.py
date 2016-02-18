@@ -41,7 +41,7 @@ setup(
     url='https://github.com/vz10/raccoonBot',
     license='BSD licence, see LICENCE.txt',
     description='Telegram bot which assistants edx users',
-    long_description=open('README.txt').read(),
+    long_description=open('README.md').read(),
     zip_safe=False,
     install_requires=load_requirements('requirements.txt'),
 )
