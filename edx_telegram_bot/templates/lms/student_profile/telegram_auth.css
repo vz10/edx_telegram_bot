@@ -1,0 +1,8 @@
+.telegram-auth {
+    box-sizing: border-box;
+    margin: 0 auto 0;
+    padding: 40px 0;
+    max-width: 1180px;
+    min-width: 760px;
+    width: 100%;
+}
