@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import snowballstemmer
 import numpy as np
 import sklearn as sk
@@ -7,9 +8,33 @@ import scipy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
+from xmodule.modulestore.django import modulestore
+from openedx.core.djangoapps.models.course_details import CourseDetails
+
+from models import TfidMatrixAllCourses
+
+
+def get_coursed_and_create_matrix():
+    results = modulestore().get_courses()
+    stemmer = snowballstemmer.stemmer('english')
+
+    results = (course for course in results if
+               course.scope_ids.block_type == 'course')
+    all_courses = [re.sub('<[^>]*>', '', CourseDetails.fetch_about_attribute(x.id, 'overview')) for x in results]
+    print all_courses
+    courses_stem = [' '.join(stemmer.stemWords(x.split())) for x in all_courses]
+    courses_stem = courses_stem*5
+    vect = TfidfVectorizer(stop_words=get_stop_words(), lowercase=True, dtype=np.float32)
+    matrix = vect.fit_transform(courses_stem)
+
+    new_matrix = TfidMatrixAllCourses()
+    new_matrix.matrix=matrix
+    new_matrix.save()
+
+
 def get_stop_words():
    result = set()
-   for line in open('stopwords_en.txt', 'r').readlines():
+   for line in open('edx_telegram_bot/edx_telegram_bot/stopwords_en.txt', 'r').readlines():
         result.add(line.strip())
    return result
 

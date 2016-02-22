@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 import telegram
 from decorators import singleton
@@ -9,6 +10,7 @@ import requests
 import time
 import urllib
 
+import prediction
 
 class RaccoonBot(object):
     def __init__(self):
@@ -23,6 +25,9 @@ class RaccoonBot(object):
             '/all_courses': "You can see all available courses",
             '/my_courses': "You can see only your courses",
         }
+
+        prediction.get_coursed_and_create_matrix()
+
         print "*" * 88
         print "run bot"
         self.updater = Updater(token=token, workers=10)
@@ -43,7 +48,7 @@ class RaccoonBot(object):
         self.dispatcher.addUnknownTelegramCommandHandler(self.unknown)
         self.dispatcher.addErrorHandler(self.error)
 
-        self.updater.start_polling()
+        self.queue = self.updater.start_polling()
 
     def hi(self, bot, update):
         print bot
