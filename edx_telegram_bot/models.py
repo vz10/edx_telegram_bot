@@ -3,6 +3,7 @@ import hashlib
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from picklefield.fields import PickledObjectField
 
 
 class EdxTelegramUser(models.Model):
@@ -18,7 +19,7 @@ class EdxTelegramUser(models.Model):
         (STATUS_DONE, 'Done')
     )
     student = models.ForeignKey(User, db_index=True)
-    hash = models.CharField(max_length=36, blank=True, null=True)
+    hash = models.CharField(max_length=38, blank=True, null=True)
     telegram_id = models.CharField(max_length=10, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True, db_index=True)
@@ -31,7 +32,7 @@ class EdxTelegramUser(models.Model):
         """
         str_to_hash = str(self.student.pk) + str(self.student.username) + str(self.modified)
 
-        return "hash" + hashlib.md5(str_to_hash).hexdigest()
+        return "hash::" + hashlib.md5(str_to_hash).hexdigest()
 
     def post_save(self, sender, instance, created, **kwargs):
         """
@@ -42,4 +43,12 @@ class EdxTelegramUser(models.Model):
             instance.save()
 
 
-post_save.connect(EdxTelegramUser.post_save, EdxTelegramUser, dispatch_uid='add_hash')
+# post_save.connect(EdxTelegramUser.post_save, EdxTelegramUser, dispatch_uid='add_hash')
+
+class TfidMatrixAllCourses(models.Model):
+    matrix = PickledObjectField()
+
+
+class TfidStudentrMatrix(models.Model):
+    matrix = PickledObjectField()
+    student = models.ForeignKey(User, db_index=True)

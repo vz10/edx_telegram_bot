@@ -1,2 +1,9 @@
 python-telegram-bot
+django-picklefield
 requests
+snowballstemmer
+PyStemmer
+sklearn
+notebook
+numpy
+scipy

@@ -9,6 +9,7 @@ import requests
 import time
 import urllib
 
+
 class RaccoonBot(object):
     def __init__(self):
         """
@@ -195,4 +196,3 @@ class RaccoonBot(object):
 
 print "start"
 
-# RaccoonBot()

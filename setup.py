@@ -32,12 +32,12 @@ def load_requirements(*requirements_paths):
     return list(requirements)
 
 setup(
-    name='edx-telegram-bot',
+    name='edx_telegram_bot',
     version='0.1',
     equires=['python-telegram-bot', 'requests'],
     author='RaccoonGang',
     author_email='info@raccoongang.com',
-    packages=['edx-telegram-bot'],
+    packages=['edx_telegram_bot'],
     url='https://github.com/vz10/raccoonBot',
     license='BSD licence, see LICENCE.txt',
     description='Telegram bot which assistants edx users',
