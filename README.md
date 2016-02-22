@@ -25,6 +25,6 @@ MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx-tel
 ```
 to start bot use this command in parallel terminal after starting LMS
 
-...
+```
 ./manage.py lms start_bot --settings=devstack
-...
+```
