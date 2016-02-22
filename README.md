@@ -3,7 +3,7 @@ This is telegram bot for edx clients support
 Run following commands:
 
 ```
-cd /edx/app/edxapp/venvs/edxapp/edx-platform/
+cd /edx/app/edxapp/edx-platform/
 git clone https://github.com/vz10/raccoonBot.git
 mv raccoonBot edx-telegram-bot
 pip install -e edx-telegram-bot
@@ -19,8 +19,7 @@ INSTALLED_APPS = {
     ...
 }
 ...
-COMMON_ROOT / 'djangoapps' / 'pipeline_mako' / 'templates']
-MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/venvs/edxapp/src/edx-telegram-bot/edx-telegram-bot/templates/lms'] + \
+MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx-telegram-bot/templates/lms'] + \
                          MAKO_TEMPLATES['main']
 ...
 ```
