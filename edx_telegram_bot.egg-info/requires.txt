@@ -1,9 +1,0 @@
-python-telegram-bot
-snowballstemmer
-PyStemmer
-django-picklefield
-scipy
-notebook
-requests
-numpy
-sklearn
