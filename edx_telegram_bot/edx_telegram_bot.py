@@ -3,14 +3,28 @@
 
 from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 import telegram
-from decorators import singleton
+import re
 from config import *
 import json
 import requests
 import time
 import urllib
 
+from openedx.core.djangoapps.models.course_details import CourseDetails
+from opaque_keys.edx.keys import CourseKey
+
 import prediction
+from models import (MatrixEdxCoursesId, TfidMatrixAllCourses,
+                    EdxTelegramUser, TfidUserVector, LearningPredictionForUser)
+
+
+def truncate_course_info(course_info):
+    course_info = re.sub('<[^>]*>', '', course_info).split()
+    if len(course_info) > 35:
+        return ' '.join(course_info[:35]) + '...'
+    else:
+        return ' '.join(course_info)
+
 
 class RaccoonBot(object):
     def __init__(self):
@@ -41,7 +55,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
-        self.dispatcher.addTelegramCommandHandler('reccomendations ', self.reccomend)
+        self.dispatcher.addTelegramCommandHandler('reccomendations', self.reccomend)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
         self.dispatcher.addTelegramRegexHandler(r"what.*course", self.courses)
@@ -53,7 +67,44 @@ class RaccoonBot(object):
 
     def reccomend(self, bot, update):
         chat_id = update.message.chat_id
-        bot.sendMessage(chat_id=chat_id, text="My best reccomendation for you is to fuck yourself")
+
+        test_courses = prediction.get_test_courses(chat_id).get_list()
+        # matrix = TfidMatrixAllCourses.objects.all().first().matrix
+        course_id = MatrixEdxCoursesId.objects.get(course_index=test_courses[0]).course_key
+        print course_id
+        course_key = CourseKey.from_string(course_id)
+        course_description = CourseDetails.fetch_about_attribute(course_key, 'overview')
+        keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it'],
+                    [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
+        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+        bot.sendMessage(chat_id=chat_id,
+                        text=truncate_course_info(course_description),
+                        reply_markup=reply_markup)
+
+    def positive_learning(self, bot, update):
+        chat_id = update.message.chat_id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        user_vector, cr = TfidUserVector.objects.get_or_create(telegram_user=telegram_user)
+        matrix = TfidMatrixAllCourses.objects.all().first().matrix
+        learning_lessons = LearningPredictionForUser.objects.get(telegram_user=telegram_user)
+        if cr:
+            user_vector.vector = matrix[learning_lessons.get_list()[0]]
+        else:
+            user_vector.vector = user_vector.vector+matrix[learning_lessons.get_list()[0]]
+        learning_lessons.save_list(learning_lessons.get_list()[1:])
+        learning_lessons.save()
+        user_vector.save()
+        bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
+        self.reccomend(bot, update)
+
+    def negative_learning(self, bot, update):
+        chat_id = update.message.chat_id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        learning_lessons = LearningPredictionForUser.objects.get(telegram_user=telegram_user)
+        learning_lessons.save_list(learning_lessons.get_list()[1:])
+        learning_lessons.save()
+        bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
+        self.reccomend(bot, update)
 
     def hi(self, bot, update):
         print bot
@@ -96,10 +147,10 @@ class RaccoonBot(object):
             self.get_course_description(bot, course_name, chat_id)
             return
         if message.find(Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8')) == 0:
-            self.my_courses(bot, update)
+            self.positive_learning(bot, update)
             return
         if message.find(Emoji.ORANGE_BOOK.decode('utf-8')) == 0:
-            self.courses(bot, update)
+            self.negative_learning(bot, update)
             return
         if message.find('hash::') == 0:
             self.send_hash(bot, update)
