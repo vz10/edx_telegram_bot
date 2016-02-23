@@ -33,17 +33,17 @@ class EdxTelegramUser(models.Model):
         str_to_hash = str(self.student.pk) + str(self.student.username) + str(self.modified)
 
         return "hash::" + hashlib.md5(str_to_hash).hexdigest()
-
-    def post_save(self, sender, instance, created, **kwargs):
+    @staticmethod
+    def post_save(sender, instance, created, **kwargs):
         """
         Method for post_save signal which creates a auth hash
         """
-        if created and not instance.hash_key:
-            instance.hash_key = self.generate_hash()
+        if not instance.hash:
+            instance.hash = instance.generate_hash()
             instance.save()
 
 
-# post_save.connect(EdxTelegramUser.post_save, EdxTelegramUser, dispatch_uid='add_hash')
+post_save.connect(EdxTelegramUser.post_save, sender=EdxTelegramUser, dispatch_uid='add_hash')
 
 class TfidMatrixAllCourses(models.Model):
     """

@@ -1,5 +1,6 @@
 <%!
 from django.utils.translation import ugettext as _
+from edx_telegram_bot.config import bot_name
 %>
 <style>
     <%include file="telegram_auth.css"/>
@@ -8,31 +9,57 @@ from django.utils.translation import ugettext as _
     <div style="padding: 0 30px;">
         <h2>${_("Telegram bot authantication")}</h2>
         <button class="telegram-get-token">${_("Get auth token")}</button>
-        <img src="/static/debug_toolbar/img/ajax-loader.gif" alt="loading" class="djdt-loader" style="display: none"/>
-        <input type="text" disabled class="telegram-token" style="display: none">
+        <img src="/static/debug_toolbar/img/ajax-loader.gif" alt="loading" class="djdt-loader"/>
+        <div class="token-block" >
+            <p>${_("Send this hash key (with <i>hash::</i>) to our <a href='https://telegram.me/%s' target='_blank'>telegram bot</a>" % bot_name)}</p>
+            <b  class="telegram-token"></b>
+            <a href="#" class="token-reset">${_('generate new token')}</a>
+        </div>
     </div>
     <script>
-        $('.telegram-get-token').on('click', function () {
-            $(this).hide();
-            $('.telegram-auth .djdt-loader').show();
+        var block = $('.telegram-auth .token-block'),
+                get_token = $('.telegram-auth .telegram-get-token'),
+                loader = $('.telegram-auth .djdt-loader'),
+                reset_token = $('.telegram-auth .token-reset');
+        function getToken(type) {
+            block.hide();
+            get_token.hide();
+            loader.hide();
+            var url = "/api/bot/generate/",
+                data = {};
+            if (type == "GET"){
+                url = url + "?id=${user.id}";
+            }else{
+                data = {'id': '${user.id}'};
+            }
             $.ajax({
-                url: "/api/bot/generate/",
-                data: {
-                    'id': '${user.id}',
-                },
+                url: url,
+                data: data,
                 csrf: '${ csrf_token }',
-                type: "POST"
+                type: type
             }).success(function (data) {
-                $('.telegram-auth .djdt-loader').hide();
-                $('.telegram-auth .telegram-token').show();
-                $('.telegram-token').val(data.token);
-
+                loader.hide();
+                if (data.token) {
+                    $('.telegram-auth .telegram-token').text(data.token);
+                    block.show();
+                } else {
+                    get_token.show();
+                }
             }).error(function (jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
-                $('.telegram-auth .djdt-loader').hide();
-                $('.telegram-auth .telegram-get-token').show();
+                loader.hide();
+                get_token.show();
                 alert(errorThrown);
             });
+        }
+        get_token.on('click', function () {
+            getToken("POST");
         });
+        reset_token.on('click',function(){
+            getToken("PUT");
+            return false;
+
+        })
+        getToken("GET");
     </script>
 </div>

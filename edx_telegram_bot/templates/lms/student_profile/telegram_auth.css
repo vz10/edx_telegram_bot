@@ -6,3 +6,9 @@
     min-width: 760px;
     width: 100%;
 }
+
+.telegram-auth .telegram-get-token,
+.telegram-auth .token-block
+{
+    display: none;
+}
