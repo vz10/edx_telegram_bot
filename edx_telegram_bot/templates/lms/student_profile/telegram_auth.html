@@ -56,7 +56,9 @@ from edx_telegram_bot.config import bot_name
             getToken("POST");
         });
         reset_token.on('click',function(){
-            getToken("PUT");
+            if (confirm('${_("Are you really want to generate new token?")}')) {
+                getToken("PUT");
+            }
             return false;
 
         })

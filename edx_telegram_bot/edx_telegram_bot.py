@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-
-
-from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
-import telegram
-from decorators import singleton
-from config import *
 import json
 import requests
 import time
 import urllib
 
+from decorators import singleton
+from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
+import telegram
+
 import prediction
+from config import *
+from models import  EdxTelegramUser
 
 class RaccoonBot(object):
     def __init__(self):
@@ -41,7 +41,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
-        self.dispatcher.addTelegramCommandHandler('reccomendations ', self.reccomend)
+        self.dispatcher.addTelegramCommandHandler('recomendations ', self.recomend)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
         self.dispatcher.addTelegramRegexHandler(r"what.*course", self.courses)
@@ -51,9 +51,9 @@ class RaccoonBot(object):
 
         self.queue = self.updater.start_polling()
 
-    def reccomend(self, bot, update):
+    def recomend(self, bot, update):
         chat_id = update.message.chat_id
-        bot.sendMessage(chat_id=chat_id, text="My best reccomendation for you is to fuck yourself")
+        bot.sendMessage(chat_id=chat_id, text="My best recomendation for you is to fuck yourself")
 
     def hi(self, bot, update):
         print bot
@@ -188,11 +188,14 @@ class RaccoonBot(object):
         print update
         chat_id = update.message.chat_id
         user_hash = update.message.text
-        response = requests.get(auth_api + '?token=' + str(user_hash) + '&tel_name=' + str(chat_id))
-        if response.status_code == 200:
-            bot.sendMessage(chat_id=chat_id, text="Registration OK")
-        else:
-            bot.sendMessage(chat_id=chat_id, text="Registration not OK")
+        try:
+            edx_telegram_user = EdxTelegramUser.objects.get(hash=user_hash)
+            edx_telegram_user.telegram_id = chat_id
+            edx_telegram_user.status = EdxTelegramUser.STATUS_ACTIVE
+            edx_telegram_user.save()
+            bot.sendMessage(chat_id=chat_id, text="Registration successful")
+        except EdxTelegramUser.DoesNotExist:
+            bot.sendMessage(chat_id=chat_id, text="Auth token doesn't correct")
 
     def reminder(self, bot, update):
         print 'reminder'

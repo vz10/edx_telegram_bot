@@ -30,5 +30,6 @@ class GenerateToken(APIView):
         edx_telegram, created = EdxTelegramUser.objects.get_or_create(student=user)
         edx_telegram.hash = ""
         edx_telegram.status = EdxTelegramUser.STATUS_NEW
+        edx_telegram.telegram_id = ""
         edx_telegram.save()
         return Response({'token': edx_telegram.hash})
