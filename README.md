@@ -12,6 +12,7 @@ pip install -e edx_telegram_bot
 In `lms/envs/common.py` add:
 
 ```
+ROOT_URLCONF = 'edx_telegram_bot.urls'
 ...
 INSTALLED_APPS = {
     ...
@@ -19,7 +20,7 @@ INSTALLED_APPS = {
     ...
 }
 ...
-MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx-telegram-bot/templates/lms'] + \
+MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx_telegram_bot/templates/lms'] + \
                          MAKO_TEMPLATES['main']
 ...
 ```
