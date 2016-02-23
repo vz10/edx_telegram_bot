@@ -57,8 +57,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
-        self.dispatcher.addTelegramCommandHandler('recomendations ', self.recomend)
-        self.dispatcher.addTelegramCommandHandler('reccomendations', self.reccomend)
+        self.dispatcher.addTelegramCommandHandler('recommendations', self.recommend)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
         self.dispatcher.addTelegramRegexHandler(r"what.*course", self.courses)
@@ -68,7 +67,7 @@ class RaccoonBot(object):
 
         self.queue = self.updater.start_polling()
 
-    def recomend(self, bot, update):
+    def recommend(self, bot, update):
         chat_id = update.message.chat_id
 
         test_courses = prediction.get_test_courses(chat_id).get_list()
@@ -95,19 +94,17 @@ class RaccoonBot(object):
         else:
             user_vector.vector = user_vector.vector+matrix[learning_lessons.get_list()[0]]
         learning_lessons.save_list(learning_lessons.get_list()[1:])
-        learning_lessons.save()
         user_vector.save()
         bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
-        self.reccomend(bot, update)
+        self.recommend(bot, update)
 
     def negative_learning(self, bot, update):
         chat_id = update.message.chat_id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
         learning_lessons = LearningPredictionForUser.objects.get(telegram_user=telegram_user)
         learning_lessons.save_list(learning_lessons.get_list()[1:])
-        learning_lessons.save()
         bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
-        self.reccomend(bot, update)
+        self.recommend(bot, update)
 
     def hi(self, bot, update):
         print bot
