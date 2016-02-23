@@ -10,9 +10,8 @@ from models import EdxTelegramUser
 class GenerateToken(APIView):
     def post(self, request):
         user_id = request.POST.get('id')
-        # user = get_object_or_404(User,pk=user_id)
-        # edx_telegram = EdxTelegramUser.get_or_create(user=user)
+        user = get_object_or_404(User, pk=user_id)
+        edx_telegram = EdxTelegramUser.get_or_create(user=user)
 
-        # return Response({'token': edx_telegram.token})
-        return Response({'token':'qweq'})
+        return Response({'token': edx_telegram.token})
 

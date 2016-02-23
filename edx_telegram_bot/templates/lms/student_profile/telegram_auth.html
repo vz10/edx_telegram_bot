@@ -17,14 +17,21 @@ from django.utils.translation import ugettext as _
             $('.telegram-auth .djdt-loader').show();
             $.ajax({
                 url: "/api/bot/generate/",
-                data: {},
-                csrf: 'VdEOChmAvspHtjROzXQAR4BJVrWisli7',
+                data: {
+                    'id': '${user.id}',
+                },
+                csrf: '${ csrf_token }',
                 type: "POST"
             }).success(function (data) {
                 $('.telegram-auth .djdt-loader').hide();
                 $('.telegram-auth .telegram-token').show();
                 $('.telegram-token').val(data.token);
 
+            }).error(function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                $('.telegram-auth .djdt-loader').hide();
+                $('.telegram-auth .telegram-get-token').show();
+                alert(errorThrown);
             });
         });
     </script>
