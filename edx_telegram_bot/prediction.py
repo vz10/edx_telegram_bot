@@ -11,25 +11,27 @@ from sklearn.metrics.pairwise import linear_kernel
 from xmodule.modulestore.django import modulestore
 from openedx.core.djangoapps.models.course_details import CourseDetails
 
-from models import TfidMatrixAllCourses
+from models import TfidMatrixAllCourses, MatrixEdxCoursesId
 
 
 def get_coursed_and_create_matrix():
     results = modulestore().get_courses()
     stemmer = snowballstemmer.stemmer('english')
 
-    results = (course for course in results if
-               course.scope_ids.block_type == 'course')
-    all_courses = [re.sub('<[^>]*>', '', CourseDetails.fetch_about_attribute(x.id, 'overview')) for x in results]
-    print all_courses
-    courses_stem = [' '.join(stemmer.stemWords(x.split())) for x in all_courses]
-    courses_stem = courses_stem*5
-    vect = TfidfVectorizer(stop_words=get_stop_words(), lowercase=True, dtype=np.float32)
-    matrix = vect.fit_transform(courses_stem)
+    results = [course for course in results if
+               course.scope_ids.block_type == 'course']
 
-    new_matrix = TfidMatrixAllCourses()
-    new_matrix.matrix=matrix
-    new_matrix.save()
+    all_courses = [re.sub('<[^>]*>', '', CourseDetails.fetch_about_attribute(x.id, 'overview')) for x in results]
+    # map(lambda x: MatrixEdxCoursesId.objects.get_or_create(course_key=x.id, course_index=results.index(x)), results)
+    #
+    # courses_stem = [' '.join(stemmer.stemWords(x.split())) for x in all_courses]
+    # courses_stem = courses_stem*5
+    # vect = TfidfVectorizer(stop_words=get_stop_words(), lowercase=True, dtype=np.float32)
+    # matrix = vect.fit_transform(courses_stem)
+    # print matrix.data
+    # new_matrix = TfidMatrixAllCourses()
+    # new_matrix.matrix=matrix
+    # new_matrix.save()
 
 
 def get_stop_words():
@@ -75,3 +77,5 @@ def prediction(user_matrix, course_matrix):
         user_matrix = i_am_going_to_teach_you(user_matrix,course_matrix[related_docs_indices[-10]])
     else:
         user_matrix = i_am_going_to_teach_you(user_matrix,course_matrix[related_docs_indices[-10]], is_right=True)
+
+

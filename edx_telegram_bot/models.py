@@ -46,9 +46,44 @@ class EdxTelegramUser(models.Model):
 # post_save.connect(EdxTelegramUser.post_save, EdxTelegramUser, dispatch_uid='add_hash')
 
 class TfidMatrixAllCourses(models.Model):
+    """
+    Storing Tfid matrix for all available courses
+    """
     matrix = PickledObjectField()
 
 
-class TfidStudentrMatrix(models.Model):
+class MatrixEdxCoursesId(models.Model):
+    """
+    Relations between index of course in Tfid matrix and course_key in edX
+    """
+    course_index = models.IntegerField()
+    course_key = models.CharField(max_length=100)
+
+
+class TfidUserMatrix(models.Model):
+    """
+    Prediction vector for particular user
+    """
+    telegram_user = models.OneToOneField(
+                        EdxTelegramUser,
+                        on_delete=models.CASCADE,
+                        primary_key=True,)
     matrix = PickledObjectField()
-    student = models.ForeignKey(User, db_index=True)
+
+    def __str__(self):
+        return self.telegram_user.student.name
+
+
+class PredictionForUser(models.Model):
+    """
+    Storing last predicted course for particular user until
+    user give his reaction (agree or not agrre) for prediction
+    """
+    telegram_user = models.OneToOneField(
+                        EdxTelegramUser,
+                        on_delete=models.CASCADE,
+                        primary_key=True,)
+    prediction_course = models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.telegram_user.student.name

@@ -41,6 +41,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
+        self.dispatcher.addTelegramCommandHandler('reccomendations ', self.reccomend)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
         self.dispatcher.addTelegramRegexHandler(r"what.*course", self.courses)
@@ -49,6 +50,10 @@ class RaccoonBot(object):
         self.dispatcher.addErrorHandler(self.error)
 
         self.queue = self.updater.start_polling()
+
+    def reccomend(self, bot, update):
+        chat_id = update.message.chat_id
+        bot.sendMessage(chat_id=chat_id, text="My best reccomendation for you is to fuck yourself")
 
     def hi(self, bot, update):
         print bot
