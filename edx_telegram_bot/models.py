@@ -1,4 +1,5 @@
 import hashlib
+import json
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -60,7 +61,7 @@ class MatrixEdxCoursesId(models.Model):
     course_key = models.CharField(max_length=100)
 
 
-class TfidUserMatrix(models.Model):
+class TfidUserVector(models.Model):
     """
     Prediction vector for particular user
     """
@@ -68,10 +69,10 @@ class TfidUserMatrix(models.Model):
                         EdxTelegramUser,
                         on_delete=models.CASCADE,
                         primary_key=True,)
-    matrix = PickledObjectField()
+    vector = PickledObjectField()
 
     def __str__(self):
-        return self.telegram_user.student.name
+        return self.telegram_user.student.username
 
 
 class PredictionForUser(models.Model):
@@ -86,4 +87,27 @@ class PredictionForUser(models.Model):
     prediction_course = models.CharField(max_length=15)
 
     def __str__(self):
-        return self.telegram_user.student.name
+        return self.telegram_user.student.username
+
+
+class LearningPredictionForUser(models.Model):
+    """
+    Storing list of test courses for making prediction learning
+    """
+    telegram_user = models.OneToOneField(
+                        EdxTelegramUser,
+                        on_delete=models.CASCADE,
+                        primary_key=True,)
+    prediction_list = models.CharField(max_length=30)
+
+    def get_list(self):
+        print '+'*50
+        print json.loads(self.prediction_list)
+        return json.loads(self.prediction_list)
+
+    def save_list(self, list_to_save):
+        self.prediction_list = json.dumps(list_to_save)
+
+
+    def __str__(self):
+        return self.telegram_user.student.username
