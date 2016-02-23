@@ -12,6 +12,7 @@ pip install -e edx_telegram_bot
 In `lms/envs/common.py` add:
 
 ```
+...
 ROOT_URLCONF = 'edx_telegram_bot.urls'
 ...
 INSTALLED_APPS = {
