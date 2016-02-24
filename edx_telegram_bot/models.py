@@ -102,12 +102,11 @@ class LearningPredictionForUser(models.Model):
     prediction_list = models.CharField(max_length=30)
 
     def get_list(self):
-        print '+'*50
-        print json.loads(self.prediction_list)
         return json.loads(self.prediction_list)
 
     def save_list(self, list_to_save):
-        self.prediction_list = json.dumps(list_to_save)
+        self.prediction_list = str(list_to_save)
+        self.save()
 
 
     def __str__(self):

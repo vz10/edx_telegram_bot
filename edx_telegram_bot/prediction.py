@@ -57,9 +57,11 @@ def get_test_courses(telegram_id):
                                             matrix_of_courses).flatten()
         list_of_indexes = np.linspace(cosine_similarities.min(), cosine_similarities.max(), num=15)
         for each in list_of_indexes:
-            output.append(find_nearest(cosine_similarities, each))
-        test_courses.save_list(list(set(output)))
-        test_courses.save()
+            test_course = find_nearest(cosine_similarities, each)
+            if not test_course in output:
+                output.append(test_course)
+        print output
+        test_courses.save_list(output)
     return test_courses
 
 
