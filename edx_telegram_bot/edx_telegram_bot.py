@@ -16,12 +16,18 @@ from opaque_keys.edx.keys import CourseKey
 from xmodule.modulestore.django import modulestore
 
 import prediction
+<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
 
 from django.conf import settings
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, EdxTelegramUser,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
                     PredictionForUser)
 
+=======
+from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, EdxTelegramUser,
+                    EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
+                    PredictionForUser)
+>>>>>>> Recommendation function impovements
 
 
 def truncate_course_info(course_info):
@@ -73,6 +79,7 @@ class RaccoonBot(object):
 
     def recommend(self, bot, update):
         chat_id = update.message.chat_id
+<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
         telegram_id =  update.message.from_user.id
         print update.message
         if EdxTelegramUser.objects.filter(telegram_id=telegram_id):
@@ -81,6 +88,14 @@ class RaccoonBot(object):
                 bot.sendMessage(chat_id=chat_id,
                                 text="It seems like I see you for the first time, please answer a few questions, so I'll be know more about you")
                 prediction.get_test_courses(telegram_id)
+=======
+        if EdxTelegramUser.objects.filter(telegram_id=chat_id):
+            telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+            if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
+                bot.sendMessage(chat_id=chat_id,
+                                text="It seems like I see you for the first time, please answer a few questions, so I'll be know more about you")
+                prediction.get_test_courses(chat_id)
+>>>>>>> Recommendation function impovements
             test_courses = LearningPredictionForUser.objects.get(telegram_user=telegram_user).get_list()
             if len(test_courses) > 0:
                 course_id = MatrixEdxCoursesId.objects.get(course_index=test_courses[0]).course_key
@@ -88,7 +103,11 @@ class RaccoonBot(object):
                 keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it'],
                             [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
             else:
+<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
                 predicted_course_id = prediction.prediction(telegram_id)
+=======
+                predicted_course_id = prediction.prediction(chat_id)
+>>>>>>> Recommendation function impovements
                 predicted_course_key = MatrixEdxCoursesId.objects.get(course_index=predicted_course_id).course_key
                 bot.sendMessage(chat_id=chat_id,
                             text="Now I'm going to recommend you some shitty courses")
@@ -117,6 +136,7 @@ class RaccoonBot(object):
         else:
             bot.sendMessage(chat_id=chat_id,
                             text="You have to connect your telegram with your edX account first")
+<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
 
     def learning(self, bot, update, is_positive=True):
         chat_id = update.message.chat_id
@@ -134,6 +154,31 @@ class RaccoonBot(object):
         learning_lessons.save_list(learning_lessons.get_list()[1:])
         bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
         self.recommend(bot, update)
+=======
+
+    def learning(self, bot, update, is_positive=True):
+        chat_id = update.message.chat_id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        learning_lessons = LearningPredictionForUser.objects.get(telegram_user=telegram_user)
+        if is_positive:
+            user_vector, cr = TfidUserVector.objects.get_or_create(telegram_user=telegram_user)
+            matrix = TfidMatrixAllCourses.objects.all().first().matrix
+            if cr:
+                user_vector.vector = matrix[learning_lessons.get_list()[0]]
+            else:
+                user_vector.vector = user_vector.vector+matrix[learning_lessons.get_list()[0]]
+            user_vector.save()
+        learning_lessons.save_list(learning_lessons.get_list()[1:])
+        bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
+        self.recommend(bot, update)
+
+    def predict_answer(self, bot, update, enroll=False, yes=False):
+        chat_id = update.message.chat_id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        predicted_course_id = PredictionForUser.objects.get(telegram_user=telegram_user).prediction_course
+        answer_id = MatrixEdxCoursesId.objects.get(course_key=predicted_course_id).course_index
+        prediction.i_am_going_to_teach_you(chat_id, answer_id, is_right=yes)
+>>>>>>> Recommendation function impovements
 
     def predict_answer(self, bot, update, enroll=False, yes=False):
         chat_id = update.message.chat_id
