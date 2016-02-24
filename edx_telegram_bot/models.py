@@ -85,7 +85,7 @@ class PredictionForUser(models.Model):
                         EdxTelegramUser,
                         on_delete=models.CASCADE,
                         primary_key=True,)
-    prediction_course = models.CharField(max_length=15)
+    prediction_course = models.CharField(max_length=100)
 
     def __str__(self):
         return self.telegram_user.student.username

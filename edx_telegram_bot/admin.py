@@ -2,7 +2,8 @@
 django admin pages for edx-telegram bot model
 '''
 
-from models import EdxTelegramUser, TfidMatrixAllCourses, MatrixEdxCoursesId, TfidUserVector, LearningPredictionForUser
+from models import (EdxTelegramUser, TfidMatrixAllCourses, MatrixEdxCoursesId,
+                    TfidUserVector, LearningPredictionForUser, PredictionForUser)
 from ratelimitbackend import admin
 
 
@@ -11,6 +12,12 @@ class EdxTelegramUserAdmin(admin.ModelAdmin):
     list_filter = ('student', 'status')
     readonly_fields = ('hash',)
 
+admin.site.register(EdxTelegramUser)
+admin.site.register(TfidMatrixAllCourses)
+admin.site.register(MatrixEdxCoursesId)
+admin.site.register(TfidUserVector)
+admin.site.register(LearningPredictionForUser)
+admin.site.register(PredictionForUser)
 
 class LearningPredictionForUserAdmin(admin.ModelAdmin):
     list_display = ('telegram_user', 'prediction_list')
@@ -20,6 +27,3 @@ class LearningPredictionForUserAdmin(admin.ModelAdmin):
 admin.site.register(EdxTelegramUser, EdxTelegramUserAdmin)
 admin.site.register(LearningPredictionForUser, LearningPredictionForUserAdmin)
 
-admin.site.register(MatrixEdxCoursesId)
-admin.site.register(TfidMatrixAllCourses)
-admin.site.register(TfidUserVector)
