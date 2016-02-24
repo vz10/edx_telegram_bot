@@ -73,12 +73,14 @@ class RaccoonBot(object):
 
     def recommend(self, bot, update):
         chat_id = update.message.chat_id
-        if EdxTelegramUser.objects.filter(telegram_id=chat_id):
-            telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        telegram_id =  update.message.from_user.id
+        print update.message
+        if EdxTelegramUser.objects.filter(telegram_id=telegram_id):
+            telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
             if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
                 bot.sendMessage(chat_id=chat_id,
                                 text="It seems like I see you for the first time, please answer a few questions, so I'll be know more about you")
-                prediction.get_test_courses(chat_id)
+                prediction.get_test_courses(telegram_id)
             test_courses = LearningPredictionForUser.objects.get(telegram_user=telegram_user).get_list()
             if len(test_courses) > 0:
                 course_id = MatrixEdxCoursesId.objects.get(course_index=test_courses[0]).course_key
@@ -86,7 +88,7 @@ class RaccoonBot(object):
                 keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it'],
                             [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
             else:
-                predicted_course_id = prediction.prediction(chat_id)
+                predicted_course_id = prediction.prediction(telegram_id)
                 predicted_course_key = MatrixEdxCoursesId.objects.get(course_index=predicted_course_id).course_key
                 bot.sendMessage(chat_id=chat_id,
                             text="Now I'm going to recommend you some shitty courses")
@@ -118,7 +120,8 @@ class RaccoonBot(object):
 
     def learning(self, bot, update, is_positive=True):
         chat_id = update.message.chat_id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        telegram_id =  update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         learning_lessons = LearningPredictionForUser.objects.get(telegram_user=telegram_user)
         if is_positive:
             user_vector, cr = TfidUserVector.objects.get_or_create(telegram_user=telegram_user)
@@ -134,16 +137,18 @@ class RaccoonBot(object):
 
     def predict_answer(self, bot, update, enroll=False, yes=False):
         chat_id = update.message.chat_id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
+        telegram_id =  update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         predicted_course_id = PredictionForUser.objects.get(telegram_user=telegram_user).prediction_course
         answer_id = MatrixEdxCoursesId.objects.get(course_key=predicted_course_id).course_index
-        prediction.i_am_going_to_teach_you(chat_id, answer_id, is_right=yes)
+        prediction.i_am_going_to_teach_you(telegram_id, answer_id, is_right=yes)
 
     def hi(self, bot, update):
         print bot
         print '*' * 50
-        print update
+        print update.message.from_user.id
         print '=' * 50
+        telegram_id =  update.message.from_user.id
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         time.sleep(1)
@@ -212,6 +217,10 @@ class RaccoonBot(object):
                         text=message)
 
     def die(self, bot, update):
+        chat_id = update.message.chat_id
+        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+        bot.sendMessage(chat_id=chat_id, text='AAAAAAAA!!!! You kill me, motherfucker')
+        bot.sendMessage(chat_id=chat_id, text="But I'll be back!!!!")
         self.updater.stop()
 
     def error(self, bot, update, error):

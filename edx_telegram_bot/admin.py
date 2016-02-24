@@ -12,11 +12,9 @@ class EdxTelegramUserAdmin(admin.ModelAdmin):
     list_filter = ('student', 'status')
     readonly_fields = ('hash',)
 
-admin.site.register(EdxTelegramUser)
 admin.site.register(TfidMatrixAllCourses)
 admin.site.register(MatrixEdxCoursesId)
 admin.site.register(TfidUserVector)
-admin.site.register(LearningPredictionForUser)
 admin.site.register(PredictionForUser)
 
 class LearningPredictionForUserAdmin(admin.ModelAdmin):
