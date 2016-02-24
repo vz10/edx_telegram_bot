@@ -34,6 +34,7 @@ class EdxTelegramUser(models.Model):
         str_to_hash = str(self.student.pk) + str(self.student.username) + str(self.modified)
 
         return "hash::" + hashlib.md5(str_to_hash).hexdigest()
+
     @staticmethod
     def post_save(sender, instance, created, **kwargs):
         """

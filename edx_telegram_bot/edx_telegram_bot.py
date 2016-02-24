@@ -14,11 +14,10 @@ from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 from openedx.core.djangoapps.models.course_details import CourseDetails
 from opaque_keys.edx.keys import CourseKey
 
-from config import *
 import prediction
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser)
-
+from django.conf import settings
 
 def truncate_course_info(course_info):
     course_info = re.sub('<[^>]*>', '', course_info).split()
@@ -46,7 +45,7 @@ class RaccoonBot(object):
 
         print "*" * 88
         print "run bot"
-        self.updater = Updater(token=token, workers=10)
+        self.updater = Updater(token=settings.TELEGRAM_BOT.get('token'), workers=10)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 
@@ -124,13 +123,13 @@ class RaccoonBot(object):
             print e
 
     def get_course_description(self, bot, course_name, chat_id):
-        result = requests.get(courses_api).text
+        result = requests.get("courses_api").text
         result = json.loads(result)
         courses_lst = result.get('results')
         for each in courses_lst:
             if each['name'] == course_name:
                 course_id = urllib.pathname2url(each['id'])
-                result = requests.get(description_api + course_id).text
+                result = requests.get("description_api" + course_id).text
                 result = json.loads(result)
                 message = result['short_description']
                 if message == 'null':
@@ -181,7 +180,7 @@ class RaccoonBot(object):
     def courses(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        result = requests.get(courses_api).text
+        result = requests.get("courses_api").text
         result = json.loads(result)
         courses_lst = result.get('results')
         if not courses_lst:
@@ -200,7 +199,7 @@ class RaccoonBot(object):
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         time.sleep(1)
 
-        response = requests.get(enroll_api + '?tel_name=' + str(chat_id)).text
+        response = requests.get("enroll_api" + '?tel_name=' + str(chat_id)).text
 
         result = json.loads(response)
         courses_lst = result.get('courses')
