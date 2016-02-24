@@ -5,8 +5,8 @@ Run following commands:
 ```
 cd /edx/app/edxapp/edx-platform/
 git clone https://github.com/vz10/raccoonBot.git
-mv raccoonBot edx_telegram_bot
-pip install -e edx_telegram_bot
+mv raccoonBot edx-telegram-bot
+pip install -e edx-telegram-bot/
 ```
 
 In `lms/envs/common.py` add:
