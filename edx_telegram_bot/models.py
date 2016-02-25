@@ -79,7 +79,7 @@ class TfidUserVector(models.Model):
 class PredictionForUser(models.Model):
     """
     Storing last predicted course for particular user until
-    user give his reaction (agree or not agrre) for prediction
+    user give his reaction (agree or not agree) for prediction
     """
     telegram_user = models.OneToOneField(
                         EdxTelegramUser,
@@ -107,7 +107,6 @@ class LearningPredictionForUser(models.Model):
     def save_list(self, list_to_save):
         self.prediction_list = str(list_to_save)
         self.save()
-
 
     def __str__(self):
         return self.telegram_user.student.username
