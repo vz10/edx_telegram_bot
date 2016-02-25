@@ -9,6 +9,10 @@
 
 .telegram-auth .telegram-get-token,
 .telegram-auth .token-block
+/*.telegram-auth .telegram-success*/
 {
     display: none;
+}
+.telegram-auth .telegram-success{
+    color:green;
 }
