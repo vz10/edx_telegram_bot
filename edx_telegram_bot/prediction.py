@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import linear_kernel
 
 from xmodule.modulestore.django import modulestore
 from openedx.core.djangoapps.models.course_details import CourseDetails
+from student.models import CourseEnrollment
 
 from models import (TfidMatrixAllCourses, MatrixEdxCoursesId, PredictionForUser,
                     LearningPredictionForUser, EdxTelegramUser, TfidUserVector)
@@ -81,8 +82,12 @@ def i_am_going_to_teach_you(telegram_id, answer_id, is_right = False, teaching_c
 
 def prediction(telegram_id):
     telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+    results = CourseEnrollment.enrollments_for_user(telegram_user.student)
+    list_of_user_courses_indexes = [MatrixEdxCoursesId.objects.get(course_key=course.course_id).course_index
+                                    for course in results]
     user_vector = TfidUserVector.objects.get(telegram_user=telegram_user)
     course_matrix = TfidMatrixAllCourses.objects.all().first().matrix
+    #TODO remove enrolled courses from matrix
     cosine_similarities = linear_kernel(user_vector.vector, course_matrix).flatten()
     related_docs_indices = cosine_similarities.argsort()
     #TODO uncomment when it will enough courses
