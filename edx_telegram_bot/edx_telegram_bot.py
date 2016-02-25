@@ -11,23 +11,22 @@ import telegram
 
 from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 
+from django.contrib.sites.models import Site
+
 from openedx.core.djangoapps.models.course_details import CourseDetails
 from opaque_keys.edx.keys import CourseKey
 from xmodule.modulestore.django import modulestore
+from course_modes.models import CourseMode
+from student.models import CourseEnrollment, AlreadyEnrolledError
+
 
 import prediction
-<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
 
 from django.conf import settings
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, EdxTelegramUser,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
                     PredictionForUser)
 
-=======
-from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, EdxTelegramUser,
-                    EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
-                    PredictionForUser)
->>>>>>> Recommendation function impovements
 
 
 def truncate_course_info(course_info):
@@ -36,6 +35,20 @@ def truncate_course_info(course_info):
         return ' '.join(course_info[:35]) + '...'
     else:
         return ' '.join(course_info)
+
+
+def is_telegram_user(f):
+    def wrapper(*args, **kw):
+        bot = args[1]
+        update = args[2]
+        chat_id = update.message.chat_id
+        telegram_id =  update.message.from_user.id
+        if not EdxTelegramUser.objects.filter(telegram_id=telegram_id):
+            bot.sendMessage(chat_id=chat_id,
+                            text="I don't know you, bro. You'd better go and register you telegram in edX first")
+            return
+        return f(*args, **kw)
+    return wrapper
 
 
 class RaccoonBot(object):
@@ -50,6 +63,9 @@ class RaccoonBot(object):
             '/courses': 'You can choose what kind of courses you are interesting in',
             '/all_courses': "You can see all available courses",
             '/my_courses': "You can see only your courses",
+            '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
+            '/reminder': "In 30 seconds bot will remind you that you are idiot",
+            '/die': "Don't even think about it, motherfucker"
         }
 
         prediction.get_coursed_and_create_matrix()
@@ -77,66 +93,74 @@ class RaccoonBot(object):
 
         self.queue = self.updater.start_polling()
 
+    def enroll_user(self, bot, update, course_id):
+        chat_id = update.message.chat_id
+        telegram_id =  update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.filter(telegram_id=telegram_id)
+        user = telegram_user.student
+        course_key = CourseKey.from_string(course_id)
+        if CourseMode.can_auto_enroll(course_key):
+            available_modes = CourseMode.modes_for_course_dict(course_key)
+            try:
+                enroll_mode = CourseMode.auto_enroll_mode(course_key, available_modes)
+                if enroll_mode:
+                    a = CourseEnrollment.enroll(user, course_key, check_access=True, mode=enroll_mode)
+                bot.sendMessage(chat_id=chat_id,
+                            text="You've been enrolled")
+                course_title = modulestore().get_course(course_key).display_name_with_default
+                self.get_course_description(bot, update, course_title)
+                # current_site = Site.objects.get_current()
+                # course_url = '[%s](%scourses/%s/)' % (course_title, current_site,course_id)
+                # bot.sendMessage(chat_id=chat_id,
+                #             text=course_url,
+                #             parse_mode=telegram.ParseMode.MARKDOWN)
+            except AlreadyEnrolledError:
+                bot.sendMessage(chat_id=chat_id,
+                                text="It seems like you've been already enrolled, fucking idiot")
+            except Exception:
+                bot.sendMessage(chat_id=chat_id,
+                                text="Something goes wrong")
+
+    @is_telegram_user
     def recommend(self, bot, update):
         chat_id = update.message.chat_id
-<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
         telegram_id =  update.message.from_user.id
-        print update.message
-        if EdxTelegramUser.objects.filter(telegram_id=telegram_id):
-            telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
-            if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
-                bot.sendMessage(chat_id=chat_id,
-                                text="It seems like I see you for the first time, please answer a few questions, so I'll be know more about you")
-                prediction.get_test_courses(telegram_id)
-=======
-        if EdxTelegramUser.objects.filter(telegram_id=chat_id):
-            telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
-            if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
-                bot.sendMessage(chat_id=chat_id,
-                                text="It seems like I see you for the first time, please answer a few questions, so I'll be know more about you")
-                prediction.get_test_courses(chat_id)
->>>>>>> Recommendation function impovements
-            test_courses = LearningPredictionForUser.objects.get(telegram_user=telegram_user).get_list()
-            if len(test_courses) > 0:
-                course_id = MatrixEdxCoursesId.objects.get(course_index=test_courses[0]).course_key
-                course_key = CourseKey.from_string(course_id)
-                keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it'],
-                            [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
-            else:
-<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
-                predicted_course_id = prediction.prediction(telegram_id)
-=======
-                predicted_course_id = prediction.prediction(chat_id)
->>>>>>> Recommendation function impovements
-                predicted_course_key = MatrixEdxCoursesId.objects.get(course_index=predicted_course_id).course_key
-                bot.sendMessage(chat_id=chat_id,
-                            text="Now I'm going to recommend you some shitty courses")
-                course_key = CourseKey.from_string(predicted_course_key)
-
-                course_for_user = PredictionForUser.objects.get_or_create(telegram_user=telegram_user)[0]
-                course_for_user.prediction_course = predicted_course_key
-                course_for_user.save()
-
-                keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'I like it and I want to enroll'],
-                            [Emoji.YELLOW_HEART.decode('utf-8') + 'I like it but will eroll another time'],
-                            [Emoji.PILE_OF_POO.decode('utf-8') + 'What the shit is this']]
-
-
-            reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-            course_description = CourseDetails.fetch_about_attribute(course_key, 'overview')
-            course = modulestore().get_course(course_key)
-
-            course_title = modulestore().get_course(course_key).display_name_with_default
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+        if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
             bot.sendMessage(chat_id=chat_id,
-                            text='*%s*' % course_title,
-                            parse_mode=telegram.ParseMode.MARKDOWN)
-            bot.sendMessage(chat_id=chat_id,
-                                text=truncate_course_info(course_description),
-                                reply_markup=reply_markup)
+                            text="It seems like I see you for the first time, please answer a few questions, so I'll be know more about you")
+            prediction.get_test_courses(telegram_id)
+        test_courses = LearningPredictionForUser.objects.get(telegram_user=telegram_user).get_list()
+        if len(test_courses) > 0:
+            course_id = MatrixEdxCoursesId.objects.get(course_index=test_courses[0]).course_key
+            course_key = CourseKey.from_string(course_id)
+            keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it'],
+                        [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
         else:
+            predicted_course_id = prediction.prediction(telegram_id)
+            predicted_course_key = MatrixEdxCoursesId.objects.get(course_index=predicted_course_id).course_key
             bot.sendMessage(chat_id=chat_id,
-                            text="You have to connect your telegram with your edX account first")
-<<<<<<< 6d51cac5232203ace6f062349d7bd37d994991ee
+                        text="Now I'm going to recommend you some shitty courses")
+            course_key = CourseKey.from_string(predicted_course_key)
+
+            course_for_user = PredictionForUser.objects.get_or_create(telegram_user=telegram_user)[0]
+            course_for_user.prediction_course = predicted_course_key
+            course_for_user.save()
+
+            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'I like it and I want to enroll'],
+                        [Emoji.YELLOW_HEART.decode('utf-8') + 'I like it but will eroll another time'],
+                        [Emoji.PILE_OF_POO.decode('utf-8') + 'What the shit is this']]
+
+        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+        course_description = CourseDetails.fetch_about_attribute(course_key, 'overview')
+        course = modulestore().get_course(course_key)
+        course_title = modulestore().get_course(course_key).display_name_with_default
+        bot.sendMessage(chat_id=chat_id,
+                        text='*%s*' % course_title,
+                        parse_mode=telegram.ParseMode.MARKDOWN)
+        bot.sendMessage(chat_id=chat_id,
+                            text=truncate_course_info(course_description),
+                            reply_markup=reply_markup)
 
     def learning(self, bot, update, is_positive=True):
         chat_id = update.message.chat_id
@@ -154,31 +178,6 @@ class RaccoonBot(object):
         learning_lessons.save_list(learning_lessons.get_list()[1:])
         bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
         self.recommend(bot, update)
-=======
-
-    def learning(self, bot, update, is_positive=True):
-        chat_id = update.message.chat_id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
-        learning_lessons = LearningPredictionForUser.objects.get(telegram_user=telegram_user)
-        if is_positive:
-            user_vector, cr = TfidUserVector.objects.get_or_create(telegram_user=telegram_user)
-            matrix = TfidMatrixAllCourses.objects.all().first().matrix
-            if cr:
-                user_vector.vector = matrix[learning_lessons.get_list()[0]]
-            else:
-                user_vector.vector = user_vector.vector+matrix[learning_lessons.get_list()[0]]
-            user_vector.save()
-        learning_lessons.save_list(learning_lessons.get_list()[1:])
-        bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
-        self.recommend(bot, update)
-
-    def predict_answer(self, bot, update, enroll=False, yes=False):
-        chat_id = update.message.chat_id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=chat_id)
-        predicted_course_id = PredictionForUser.objects.get(telegram_user=telegram_user).prediction_course
-        answer_id = MatrixEdxCoursesId.objects.get(course_key=predicted_course_id).course_index
-        prediction.i_am_going_to_teach_you(chat_id, answer_id, is_right=yes)
->>>>>>> Recommendation function impovements
 
     def predict_answer(self, bot, update, enroll=False, yes=False):
         chat_id = update.message.chat_id
@@ -187,6 +186,9 @@ class RaccoonBot(object):
         predicted_course_id = PredictionForUser.objects.get(telegram_user=telegram_user).prediction_course
         answer_id = MatrixEdxCoursesId.objects.get(course_key=predicted_course_id).course_index
         prediction.i_am_going_to_teach_you(telegram_id, answer_id, is_right=yes)
+        if enroll:
+            self.enroll_user(bot, update, predicted_course_id)
+        PredictionForUser.objects.get(telegram_user=telegram_user).delete()
 
     def hi(self, bot, update):
         print bot
@@ -203,20 +205,27 @@ class RaccoonBot(object):
         except e:
             print e
 
-    def get_course_description(self, bot, course_name, chat_id):
-        result = requests.get("courses_api").text
-        result = json.loads(result)
-        courses_lst = result.get('results')
-        for each in courses_lst:
-            if each['name'] == course_name:
-                course_id = urllib.pathname2url(each['id'])
-                result = requests.get("description_api" + course_id).text
-                result = json.loads(result)
-                message = result['short_description']
+    def get_course_description(self, bot, update, course_name):
+        chat_id = update.message.chat_id
+        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+        results = modulestore().get_courses()
+        results = [course for course in results if
+                    course.scope_ids.block_type == 'course']
+        for each in results:
+            if each.display_name_with_default == course_name:
+                message = truncate_course_info(CourseDetails.fetch_about_attribute(each.id, 'overview'))
                 if message == 'null':
                     bot.sendMessage(chat_id=chat_id, text="I'm sorry, but this course has no description")
                 else:
                     bot.sendMessage(chat_id=chat_id, text="*Short course description*",
+                                    parse_mode=telegram.ParseMode.MARKDOWN)
+                    print each
+                    course_key = each.id
+                    current_site = Site.objects.get_current()
+                    course_title = modulestore().get_course(course_key).display_name_with_default
+                    course_url = '[%s](%scourses/%s/)' % (course_title, current_site,each.id)
+                    bot.sendMessage(chat_id=chat_id,
+                                    text=course_url,
                                     parse_mode=telegram.ParseMode.MARKDOWN)
                     bot.sendMessage(chat_id=chat_id, text=message)
 
@@ -226,8 +235,8 @@ class RaccoonBot(object):
         message = update.message.text
         print update
         if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
-            course_name = message[2:]
-            self.get_course_description(bot, course_name, chat_id)
+            course_name = message[1:]
+            self.get_course_description(bot, update, course_name)
             return
         if message.find(Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8')) == 0:
             self.learning(bot, update)
@@ -243,6 +252,12 @@ class RaccoonBot(object):
             return
         if message.find(Emoji.PILE_OF_POO.decode('utf-8')) == 0:
             self.predict_answer(bot, update)
+            return
+        if message.find(Emoji.T_SHIRT.decode('utf-8')) == 0:
+            self.my_courses(bot, update)
+            return
+        if message.find(Emoji.FATHER_CHRISTMAS.decode('utf-8')) == 0:
+            self.courses(bot, update)
             return
         if message.find('hash::') == 0:
             self.send_hash(bot, update)
@@ -274,37 +289,38 @@ class RaccoonBot(object):
     def courses(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        result = requests.get("courses_api").text
-        result = json.loads(result)
-        courses_lst = result.get('results')
-        if not courses_lst:
+        results = modulestore().get_courses()
+        results = [course for course in results if
+               course.scope_ids.block_type == 'course']
+
+        if not results:
             bot.sendSticker(chat_id=chat_id, sticker='BQADBAADMwIAAmONagABu635srr8N-0C')
             msg = "I can't find any courses for you. Sorry"
             bot.sendMessage(chat_id=chat_id, text=msg)
         else:
             bot.sendSticker(chat_id=chat_id, sticker='BQADBAADCwIAAmONagABF1QQKl9NWncC')
             msg = "Just have a look what I've found for you"
-            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + course['name']] for course in courses_lst]
+            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') +
+                         modulestore().get_course(course.id).display_name_with_default] for course in results]
             reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
             bot.sendMessage(chat_id=chat_id, text=msg, reply_markup=reply_markup)
 
+    @is_telegram_user
     def my_courses(self, bot, update):
         chat_id = update.message.chat_id
+        telegram_id =  update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.filter(telegram_id=telegram_id).first()
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        time.sleep(1)
-
-        response = requests.get("enroll_api" + '?tel_name=' + str(chat_id)).text
-
-        result = json.loads(response)
-        courses_lst = result.get('courses')
-        if not courses_lst:
+        results = CourseEnrollment.enrollments_for_user(telegram_user.student)
+        if not results:
             bot.sendSticker(chat_id=chat_id, sticker='BQADBAADMwIAAmONagABu635srr8N-0C')
             msg = "I can't find any courses for you. Sorry"
             bot.sendMessage(chat_id=chat_id, text=msg)
         else:
             bot.sendSticker(chat_id=chat_id, sticker='BQADBAADCwIAAmONagABF1QQKl9NWncC')
             msg = "Just have a look what I've found for you"
-            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + course['course_name']] for course in courses_lst]
+            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') +
+                         modulestore().get_course(course.course_id).display_name_with_default] for course in results]
             reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
             bot.sendMessage(chat_id=chat_id, text=msg, reply_markup=reply_markup)
 
@@ -314,8 +330,8 @@ class RaccoonBot(object):
         time.sleep(1)
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAADowMAAmONagABt5jVJ_gj0CEC')
         msg = "What kind of courses do you want me to find?"
-        keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'My courses'],
-                    [Emoji.ORANGE_BOOK.decode('utf-8') + 'All courses']]
+        keyboard = [[Emoji.T_SHIRT.decode('utf-8') + 'My courses'],
+                    [Emoji.FATHER_CHRISTMAS.decode('utf-8') + 'All courses']]
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id, text=msg, reply_markup=reply_markup)
 
@@ -349,7 +365,7 @@ class RaccoonBot(object):
         chat_id = update.message.chat_id
 
         def job(bot):
-            bot.sendMessage(chat_id=chat_id, text='A single message with 30s delay')
+            bot.sendMessage(chat_id=chat_id, text='30 seconds passed and I want to remind you that you are fucking idiot')
 
         self.j.put(job, 30, repeat=False)
 
