@@ -6,4 +6,4 @@ class BotMongo(MongoBackend):
         super(BotMongo, self).__init__(**kwargs)
 
     def find(self, query):
-        return self.collection.find(query)
+        return self.collection.find_one(query)

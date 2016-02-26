@@ -3,7 +3,8 @@ django admin pages for edx-telegram bot model
 '''
 
 from models import (EdxTelegramUser, TfidMatrixAllCourses, MatrixEdxCoursesId,
-                 TfidUserVector, LearningPredictionForUser, PredictionForUser)
+                 TfidUserVector, LearningPredictionForUser, PredictionForUser,
+                 UserCourseProgress)
 from ratelimitbackend import admin
 
 
@@ -16,6 +17,7 @@ admin.site.register(TfidMatrixAllCourses)
 admin.site.register(MatrixEdxCoursesId)
 admin.site.register(TfidUserVector)
 admin.site.register(PredictionForUser)
+admin.site.register(UserCourseProgress)
 
 class LearningPredictionForUserAdmin(admin.ModelAdmin):
     list_display = ('telegram_user', 'prediction_list')
