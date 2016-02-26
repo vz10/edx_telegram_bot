@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
-
 import re
 import json
 import requests
@@ -25,34 +23,11 @@ import prediction
 from django.conf import settings
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, EdxTelegramUser,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
-                    PredictionForUser)
+                    PredictionForUser, UserCourseProgress)
+from edx_telegram_bot import is_telegram_user
 
-
-
-def truncate_course_info(course_info):
-    course_info = re.sub('<[^>]*>', '', course_info).split()
-    if len(course_info) > 35:
-        return ' '.join(course_info[:35]) + '...'
-    else:
-        return ' '.join(course_info)
-
-
-def is_telegram_user(f):
-    def wrapper(*args, **kw):
-        bot = args[1]
-        update = args[2]
-        chat_id = update.message.chat_id
-        telegram_id =  update.message.from_user.id
-        if not EdxTelegramUser.objects.filter(telegram_id=telegram_id):
-            bot.sendMessage(chat_id=chat_id,
-                            text="I don't know you, bro. You'd better go and register you telegram in edX first")
-            return
-        return f(*args, **kw)
-    return wrapper
-
-
-class RaccoonBot(object):
-    def __init__(self):
+class CourseBot(object):
+    def __init__(self, **kwargs):
         """
         add commands and start bot
         :return:
@@ -68,11 +43,10 @@ class RaccoonBot(object):
             '/die': "Don't even think about it, motherfucker"
         }
 
-        prediction.get_coursed_and_create_matrix()
 
         print "*" * 88
-        print "run bot"
-        self.updater = Updater(token=settings.TELEGRAM_BOT.get('token'), workers=10)
+        print "run course bot"
+        self.updater = Updater(token=settings.TELEGRAM_BOT.get('course_bot_token'), workers=10)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 
@@ -84,6 +58,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
         self.dispatcher.addTelegramCommandHandler('recommendations', self.recommend)
+        self.dispatcher.addTelegramCommandHandler('start', self.start)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
         self.dispatcher.addTelegramRegexHandler(r"what.*course", self.courses)
@@ -93,12 +68,50 @@ class RaccoonBot(object):
 
         self.queue = self.updater.start_polling()
 
-        self.mongo_client = BotMongo(database='bot',collection='course_name')
-        self.mongo_client.send({'field':'Content of that field'})
-        a = self.mongo_client.find({'field':'Content of that field'})
-        for each in a:
-            print each
+        self.course_key = kwargs.get('collection','course_name')
+        self.mongo_client = BotMongo(database='bot',collection=self.course_key)
 
+        #Initial fixtures for mongo collection
+
+        # self.mongo_client.send({'Problem': 'I have a problem, do you know how to solve it',
+        #                         'Wrong answers': ['First wrong answer', 'Second wrong answer', 'Third wrong answer'],
+        #                         'Right answer': 'Right answer',
+        #                         'Theoretical part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
+        #                         'Negative answer': "I can't belive that you are such an idiot",
+        #                         'Positive answer': "You are great, thanks",
+        #                         'Order': 0,
+        #                         'Next step order':1})
+        #
+        # self.mongo_client.send({'Problem': 'I have another problem, do you know how to solve it',
+        #                         'Wrong answers': ['another First wrong answer', 'another Second wrong answer', 'another Third wrong answer'],
+        #                         'Right answer': 'another Right answer',
+        #                         'Theoretical part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
+        #                         'Negative answer': "I can't belive that you are such an idiot",
+        #                         'Positive answer': "You are great, thanks",
+        #                         'Order': 1,
+        #                         'Next step order':2})
+        # a = self.mongo_client.find({'field':'Content of that field'})
+
+
+    @is_telegram_user
+    def start(self, bot, update):
+        telegram_id =  update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+        progress, cr = UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
+        # if cr:
+        #     self.show_progress(bot, update, progress)
+        self.show_progress(bot, update, progress)
+
+    def show_progress(self, bot, update, progress):
+        chat_id = update.message.chat_id
+        telegram_id =  update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+        progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
+        print progress.current_step_order
+        current_step = self.mongo_client.find({'Order':progress.current_step_order})[0]
+        if progress.current_step_status == UserCourseProgress.STATUS_START:
+            bot.sendMessage(chat_id=chat_id,
+                            text=current_step['Problem'])
 
 
     def enroll_user(self, bot, update, course_id):
@@ -384,5 +397,5 @@ class RaccoonBot(object):
         self.j.put(job, 30, repeat=False)
 
 
-print "start"
+print "start course bot"
 
