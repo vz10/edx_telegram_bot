@@ -91,6 +91,8 @@ def prediction(telegram_id):
     cosine_similarities = linear_kernel(user_vector.vector, course_matrix).flatten()
 
     #removing courses on which user already enrolled
+    if len(list_of_user_courses_indexes) == len(cosine_similarities):
+        return -1
     cosine_similarities[list_of_user_courses_indexes] = -1000
 
     related_docs_indices = cosine_similarities.argsort()

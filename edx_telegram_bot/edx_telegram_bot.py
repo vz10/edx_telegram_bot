@@ -138,6 +138,12 @@ class RaccoonBot(object):
                         [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
         else:
             predicted_course_id = prediction.prediction(telegram_id)
+
+            if predicted_course_id == -1:
+                bot.sendMessage(chat_id=chat_id,
+                        text="It seems like you have enrolled to all courses we have for now")
+                return
+
             predicted_course_key = MatrixEdxCoursesId.objects.get(course_index=predicted_course_id).course_key
             bot.sendMessage(chat_id=chat_id,
                         text="Now I'm going to recommend you some shitty courses")
