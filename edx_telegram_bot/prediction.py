@@ -91,9 +91,8 @@ def prediction(telegram_id):
     cosine_similarities = linear_kernel(user_vector.vector, course_matrix).flatten()
 
     #removing courses on which user already enrolled
-    mask = np.ones(len(cosine_similarities), dtype=bool)
-    mask[list_of_user_courses_indexes] = False
-    cosine_similarities =  cosine_similarities[mask]
+    cosine_similarities[list_of_user_courses_indexes] = -1000
+
     related_docs_indices = cosine_similarities.argsort()
     #TODO uncomment when it will enough courses
     # little_random = np.random.randint(5,10)

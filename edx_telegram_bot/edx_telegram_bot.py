@@ -96,7 +96,7 @@ class RaccoonBot(object):
     def enroll_user(self, bot, update, course_id):
         chat_id = update.message.chat_id
         telegram_id =  update.message.from_user.id
-        telegram_user = EdxTelegramUser.objects.filter(telegram_id=telegram_id)
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         user = telegram_user.student
         course_key = CourseKey.from_string(course_id)
         if CourseMode.can_auto_enroll(course_key):
