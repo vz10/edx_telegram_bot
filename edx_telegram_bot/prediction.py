@@ -83,12 +83,17 @@ def i_am_going_to_teach_you(telegram_id, answer_id, is_right = False, teaching_c
 def prediction(telegram_id):
     telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
     results = CourseEnrollment.enrollments_for_user(telegram_user.student)
+    course_matrix = TfidMatrixAllCourses.objects.all().first().matrix
     list_of_user_courses_indexes = [MatrixEdxCoursesId.objects.get(course_key=course.course_id).course_index
                                     for course in results]
+
     user_vector = TfidUserVector.objects.get(telegram_user=telegram_user)
-    course_matrix = TfidMatrixAllCourses.objects.all().first().matrix
-    #TODO remove enrolled courses from matrix
     cosine_similarities = linear_kernel(user_vector.vector, course_matrix).flatten()
+
+    #removing courses on which user already enrolled
+    mask = np.ones(len(cosine_similarities), dtype=bool)
+    mask[list_of_user_courses_indexes] = False
+    cosine_similarities =  cosine_similarities[mask]
     related_docs_indices = cosine_similarities.argsort()
     #TODO uncomment when it will enough courses
     # little_random = np.random.randint(5,10)
