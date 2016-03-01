@@ -156,12 +156,5 @@ class BotFriendlyCourses(models.Model):
     """
     List of courses which supports telegram bot
     """
-    course_list = []
-
-    # def __init__(self, *args, **kwargs):
-    #     super(BotFriendlyCourses, self).__init__(*args, **kwargs)
-    #     results = modulestore().get_courses()
-    #     course_list = [(str(course), str(course)) for course in results if course.scope_ids.block_type == 'course']
-    #     self._meta.fields[1].choices = course_list
-
-    course_key = models.CharField(max_length=100, choices=[(1, 1), (2, 2)])
+    course_key = models.CharField(max_length=100, db_index=True)
+    bot_name = models.CharField(max_length=64, blank=True, null=True)

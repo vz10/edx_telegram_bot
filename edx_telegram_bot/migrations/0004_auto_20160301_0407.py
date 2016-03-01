@@ -21,9 +21,14 @@ class Migration(migrations.Migration):
                 ('telegram_user', models.ForeignKey(to='edx_telegram_bot.EdxTelegramUser')),
             ],
         ),
+        migrations.AddField(
+            model_name='botfriendlycourses',
+            name='bot_name',
+            field=models.CharField(max_length=64, null=True, blank=True),
+        ),
         migrations.AlterField(
             model_name='botfriendlycourses',
             name='course_key',
-            field=models.CharField(max_length=100, choices=[(1, 1), (2, 2)]),
+            field=models.CharField(max_length=100, db_index=True),
         ),
     ]
