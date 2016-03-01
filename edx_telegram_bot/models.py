@@ -4,7 +4,9 @@ import json
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
+from opaque_keys.edx.locator import CourseLocator
 from picklefield.fields import PickledObjectField
+from xmodule.modulestore.django import modulestore
 
 
 class EdxTelegramUser(models.Model):
@@ -47,6 +49,7 @@ class EdxTelegramUser(models.Model):
 
 post_save.connect(EdxTelegramUser.post_save, sender=EdxTelegramUser, dispatch_uid='add_hash')
 
+
 class TfidMatrixAllCourses(models.Model):
     """
     Storing Tfid matrix for all available courses
@@ -67,9 +70,9 @@ class TfidUserVector(models.Model):
     Prediction vector for particular user
     """
     telegram_user = models.OneToOneField(
-                        EdxTelegramUser,
-                        on_delete=models.CASCADE,
-                        primary_key=True,)
+        EdxTelegramUser,
+        on_delete=models.CASCADE,
+        primary_key=True, )
     vector = PickledObjectField()
 
     def __str__(self):
@@ -82,9 +85,9 @@ class PredictionForUser(models.Model):
     user give his reaction (agree or not agree) for prediction
     """
     telegram_user = models.OneToOneField(
-                        EdxTelegramUser,
-                        on_delete=models.CASCADE,
-                        primary_key=True,)
+        EdxTelegramUser,
+        on_delete=models.CASCADE,
+        primary_key=True, )
     prediction_course = models.CharField(max_length=100)
 
     def __str__(self):
@@ -96,9 +99,9 @@ class LearningPredictionForUser(models.Model):
     Storing list of test courses for making prediction learning
     """
     telegram_user = models.OneToOneField(
-                        EdxTelegramUser,
-                        on_delete=models.CASCADE,
-                        primary_key=True,)
+        EdxTelegramUser,
+        on_delete=models.CASCADE,
+        primary_key=True, )
     prediction_list = models.CharField(max_length=30)
 
     def get_list(self):
@@ -110,3 +113,18 @@ class LearningPredictionForUser(models.Model):
 
     def __str__(self):
         return self.telegram_user.student.username
+
+
+class BotFriendlyCourses(models.Model):
+    """
+    List of courses which supports telegram bot
+    """
+    course_list = []
+
+    # def __init__(self, *args, **kwargs):
+    #     super(BotFriendlyCourses, self).__init__(*args, **kwargs)
+    #     results = modulestore().get_courses()
+    #     course_list = [(str(course), str(course)) for course in results if course.scope_ids.block_type == 'course']
+    #     self._meta.fields[1].choices = course_list
+
+    course_key = models.CharField(max_length=100, choices=[(1, 1), (2, 2)])
