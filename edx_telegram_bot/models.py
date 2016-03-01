@@ -22,9 +22,13 @@ def someone_enrolls(sender, instance, **kwargs):
     bot = telegram.Bot(token=settings.TELEGRAM_BOT.get('token'))
     if instance.is_active and not CourseEnrollment.objects.get(id=instance.id).is_active:
         telegram_user = EdxTelegramUser.objects.filter(student=instance.user).first()
-        course_key = instance.course_id
-        bot.sendMessage(chat_id=telegram_user.telegram_id, text="I see you've enrolled, motherfucker")
-
+        bot = BotFriendlyCourses.objects.filter(course_key=instance.course_id)
+        course_key = CourseKey.from_string(instance.course_id)
+        course_title = modulestore().get_course(course_key).display_name_with_default
+        if bot:
+            bot.sendMessage(chat_id=telegram_user.telegram_id,
+                            text="I see you've enrolled to the %s. Ther is a bot %s linked to the course, I recommend you to chat with him" %
+                                 (course_title, bot.bot_name))
 
 class EdxTelegramUser(models.Model):
     """
