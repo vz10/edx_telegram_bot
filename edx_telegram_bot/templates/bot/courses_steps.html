@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <title>Title</title>
+</head>
+<body>
+    {% for each in steps %}
+        <form method="post">
+            {% csrf_token %}
+       {% for key, value in each.items %}
+           {% if key == '_id' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}" size="100">
+           {% else %}
+               <label for="{{ key }}">{{ key }}</label>
+               <input type="text" name="{{ key }}" value="{{ value }}" size="100"></br>
+           {% endif %}
+       {% endfor %}
+            <input type="submit" value="update" class="update_button">
+        </form>
+        <br>
+    {% endfor %}
+</body>
+</html>

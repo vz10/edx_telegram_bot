@@ -6,5 +6,6 @@ from edx_telegram_bot.edx_course_bot import CourseBot
 
 class Command(NoArgsCommand):
     def handle(self, **options):
-        # RaccoonBot()
+        RaccoonBot()
+        # CourseBot(collection='course-v1:edX+DemoX+Demo_Course')
         CourseBot()
