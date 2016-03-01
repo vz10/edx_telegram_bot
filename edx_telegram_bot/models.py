@@ -114,6 +114,7 @@ class LearningPredictionForUser(models.Model):
     def __str__(self):
         return self.telegram_user.student.username
 
+
 class UserCourseProgress(models.Model):
     STATUS_START = 'start'
     STATUS_INFO = 'info'
@@ -128,6 +129,7 @@ class UserCourseProgress(models.Model):
     course_key = models.CharField(max_length=100)
     current_step_order = models.IntegerField(default=0)
     current_step_status = models.CharField(max_length=6, choices=STATUSES, default=STATUS_START)
+
 
 class BotFriendlyCourses(models.Model):
     """
