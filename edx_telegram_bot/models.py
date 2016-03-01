@@ -5,8 +5,25 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from opaque_keys.edx.locator import CourseLocator
-from picklefield.fields import PickledObjectField
 from xmodule.modulestore.django import modulestore
+from django.db.models.signals import pre_save, post_save
+from picklefield.fields import PickledObjectField
+from django.conf import settings
+
+from django.dispatch import receiver
+from student.models import CourseEnrollment
+
+import telegram
+
+
+# method for updating
+@receiver(pre_save, sender=CourseEnrollment)
+def someone_enrolls(sender, instance, **kwargs):
+    bot = telegram.Bot(token=settings.TELEGRAM_BOT.get('token'))
+    if instance.is_active and not CourseEnrollment.objects.get(id=instance.id).is_active:
+        telegram_user = EdxTelegramUser.objects.filter(student=instance.user).first()
+        course_key = instance.course_id
+        bot.sendMessage(chat_id=telegram_user.telegram_id, text="I see you've enrolled, motherfucker")
 
 
 class EdxTelegramUser(models.Model):

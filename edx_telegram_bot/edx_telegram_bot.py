@@ -28,7 +28,6 @@ from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, EdxTelegramUser,
                     PredictionForUser)
 
 
-
 def truncate_course_info(course_info):
     course_info = re.sub('<[^>]*>', '', course_info).split()
     if len(course_info) > 35:
@@ -382,6 +381,7 @@ class RaccoonBot(object):
             bot.sendMessage(chat_id=chat_id, text='30 seconds passed and I want to remind you that you are fucking idiot')
 
         self.j.put(job, 30, repeat=False)
+
 
 
 print "start"
