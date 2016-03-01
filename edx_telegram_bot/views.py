@@ -1,35 +1,31 @@
-from rest_framework.generics import get_object_or_404
-from rest_framework.views import APIView
-from rest_framework.response import Response
+import json
+from bson.objectid import ObjectId
 
-from django.contrib.auth.models import User
+from django.views.generic import TemplateView
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.http import HttpResponse
 
-from models import EdxTelegramUser
+from xmodule.modulestore.django import modulestore
+from bot_mongo import BotMongo
 
+@login_required
+def courses_list(request):
+     results = modulestore().get_courses()
+     results = [course for course in results if
+     course.scope_ids.block_type == 'course']
+     courses = [[course.id, modulestore().get_course(course.id).display_name_with_default] for course in results]
+     return render(request,'bot/courses_list.html',context={'courses':courses})
 
-class GenerateToken(APIView):
-    def get(self, request):
-        user_id = request.GET.get('id')
-        user = get_object_or_404(User, pk=user_id)
-        try:
-            edx_telegram = EdxTelegramUser.objects.get(student=user)
-            token = edx_telegram.hash
-        except EdxTelegramUser.DoesNotExist:
-            token = False
-        return Response({'token': token})
+@login_required
+def course_nods(request, course_key_string):
+    connection = BotMongo(database='bot',collection=course_key_string)
+    if request.method == 'POST':
+        json_dict =  request.POST.dict()
+        print json_dict
+        del json_dict['csrfmiddlewaretoken']
+        json_dict["_id"] = ObjectId(json_dict["_id"])
+        connection.upsert(json_dict)
 
-    def post(self, request):
-        user_id = request.POST.get('id')
-        user = get_object_or_404(User, pk=user_id)
-        edx_telegram, created = EdxTelegramUser.objects.get_or_create(student=user)
-        return Response({'token': edx_telegram.hash})
-
-    def put(self, request):
-        user_id = request.data.get('id')
-        user = get_object_or_404(User, pk=user_id)
-        edx_telegram, created = EdxTelegramUser.objects.get_or_create(student=user)
-        edx_telegram.hash = ""
-        edx_telegram.status = EdxTelegramUser.STATUS_NEW
-        edx_telegram.telegram_id = ""
-        edx_telegram.save()
-        return Response({'token': edx_telegram.hash})
+    course_steps = connection.find_all()
+    return render(request,'bot/courses_steps.html',context={'steps':course_steps})

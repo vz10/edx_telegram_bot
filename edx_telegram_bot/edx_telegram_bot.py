@@ -93,11 +93,11 @@ class RaccoonBot(object):
 
         self.queue = self.updater.start_polling()
 
-        self.mongo_client = BotMongo(database='bot',collection='course_name')
-        self.mongo_client.send({'field':'Content of that field'})
-        a = self.mongo_client.find({'field':'Content of that field'})
-        for each in a:
-            print each
+        # self.mongo_client = BotMongo(database='bot',collection='course_name')
+        # self.mongo_client.send({'field':'Content of that field'})
+        # a = self.mongo_client.find({'field':'Content of that field'})
+        # for each in a:
+        #     print each
 
 
 

@@ -65,27 +65,28 @@ class CourseBot(object):
 
         self.course_key = kwargs.get('collection','course_name')
         self.mongo_client = BotMongo(database='bot',collection=self.course_key)
+        print self.mongo_client.get_all_courses()
 
         #Initial fixtures for mongo collection
 
         # self.mongo_client.send({'Problem': 'I have a problem, do you know how to solve it',
-        #                         'Wrong answers': ['First wrong answer', 'Second wrong answer', 'Third wrong answer'],
-        #                         'Right answer': 'Right answer',
-        #                         'Theoretical part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
-        #                         'Negative answer': "I can't belive that you are such an idiot",
-        #                         'Positive answer': "You are great, thanks",
+        #                         'Wrong_answers': ['First wrong answer', 'Second wrong answer', 'Third wrong answer'],
+        #                         'Right_answer': 'Right answer',
+        #                         'Theoretical_part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
+        #                         'Negative_answer': "I can't belive that you are such an idiot",
+        #                         'Positive_answer': "You are great, thanks",
         #                         'Order': 0,
-        #                         'Next step order':1})
+        #                         'Next_step_order':1})
         #
         # self.mongo_client.send({'Problem': 'I have another problem, do you know how to solve it',
-        #                         'Wrong answers': ['another First wrong answer', 'another Second wrong answer', 'another Third wrong answer'],
-        #                         'Right answer': 'another Right answer',
-        #                         'Theoretical part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
-        #                         'Negative answer': "I can't belive that you are such an idiot",
-        #                         'Positive answer': "You are great, thanks",
+        #                         'Wrong_answers': ['another First wrong answer', 'another Second wrong answer', 'another Third wrong answer'],
+        #                         'Right_answer': 'another Right answer',
+        #                         'Theoretical_part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
+        #                         'Negative_answer': "I can't belive that you are such an idiot",
+        #                         'Positive_answer': "You are great, thanks",
         #                         'Order': 1,
-        #                         'Next step order':2})
-        # a = self.mongo_client.find({'field':'Content of that field'})
+        #                         'Next_step_order':2})
+        # a = self.mongo_client.find_one({'field':'Content of that field'})
 
 
     @is_telegram_user
@@ -102,7 +103,7 @@ class CourseBot(object):
         telegram_id = update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
-        current_step = self.mongo_client.find({'Order':progress.current_step_order})
+        current_step = self.mongo_client.find_one({'Order':progress.current_step_order})
         if progress.current_step_status == UserCourseProgress.STATUS_START:
             keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'I can help you right now'],
                         [Emoji.ORANGE_BOOK.decode('utf-8') + 'I need to read something about it first']]
@@ -125,7 +126,7 @@ class CourseBot(object):
         telegram_id =  update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
-        current_step = self.mongo_client.find({'Order':progress.current_step_order})
+        current_step = self.mongo_client.find_one({'Order':progress.current_step_order})
 
         if answer == current_step['Right answer']:
            bot.sendMessage(chat_id=chat_id,

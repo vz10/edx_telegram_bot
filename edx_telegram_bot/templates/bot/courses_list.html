@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <select name="course_key">
+    {% for each in courses %}
+       <option value="{{ each.0 }}">{{ each.1 }}</option>
+    {% endfor %}
+     </select>
+</body>
+</html>
