@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from models import EdxTelegramUser
 
 
-
 class GenerateToken(APIView):
     def get(self, request):
         user_id = request.GET.get('id')

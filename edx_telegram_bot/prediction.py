@@ -3,8 +3,6 @@
 import re
 import snowballstemmer
 import numpy as np
-import sklearn as sk
-import scipy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
@@ -12,7 +10,7 @@ from xmodule.modulestore.django import modulestore
 from openedx.core.djangoapps.models.course_details import CourseDetails
 from student.models import CourseEnrollment
 
-from models import (TfidMatrixAllCourses, MatrixEdxCoursesId, PredictionForUser,
+from models import (TfidMatrixAllCourses, MatrixEdxCoursesId,
                     LearningPredictionForUser, EdxTelegramUser, TfidUserVector)
 
 
@@ -43,7 +41,7 @@ def get_stop_words():
    return result
 
 
-def find_nearest(array,value):
+def find_nearest(array, value):
     idx = (np.abs(array-value)).argmin()
     return idx
 
@@ -53,7 +51,7 @@ def get_test_courses(telegram_id):
     test_courses = LearningPredictionForUser.objects.get_or_create(telegram_user=telegram_user)[0]
     matrix_of_courses = TfidMatrixAllCourses.objects.all().first().matrix
     output = []
-    cosine_similarities = linear_kernel(matrix_of_courses[np.random.randint(0,matrix_of_courses.shape[0]-1)],
+    cosine_similarities = linear_kernel(matrix_of_courses[np.random.randint(0, matrix_of_courses.shape[0]-1)],
                                         matrix_of_courses).flatten()
     list_of_indexes = np.linspace(cosine_similarities.min(), cosine_similarities.max(), num=15)
     for each in list_of_indexes:
@@ -64,7 +62,7 @@ def get_test_courses(telegram_id):
     test_courses.save_list(output)
 
 
-def i_am_going_to_teach_you(telegram_id, answer_id, is_right = False, teaching_coeff = 0.01 ):
+def i_am_going_to_teach_you(telegram_id, answer_id, is_right=False, teaching_coeff=0.01 ):
     telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
     learn_vector = TfidUserVector.objects.get(telegram_user=telegram_user)
     course_matrix = TfidMatrixAllCourses.objects.all().first().matrix
@@ -74,9 +72,11 @@ def i_am_going_to_teach_you(telegram_id, answer_id, is_right = False, teaching_c
             learn_index = np.where(learn_vector.vector.indices == each)[0][0]
             answer_index = np.where(answer.indices == each)[0][0]
             if is_right:
-                learn_vector.vector.data[learn_index] = learn_vector.vector.data[learn_index] + np.float64(teaching_coeff)
+                learn_vector.vector.data[learn_index] = learn_vector.vector.data[learn_index] +\
+                                                        np.float64(teaching_coeff)
             else:
-                learn_vector.vector.data[learn_index] = learn_vector.vector.data[learn_index] - np.float64(teaching_coeff)
+                learn_vector.vector.data[learn_index] = learn_vector.vector.data[learn_index] -\
+                                                        np.float64(teaching_coeff)
     learn_vector.save()
 
 
