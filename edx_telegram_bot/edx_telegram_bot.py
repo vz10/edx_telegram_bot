@@ -5,6 +5,7 @@ import telegram
 from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 
 from django.contrib.sites.models import Site
+from django.conf import settings
 
 from openedx.core.djangoapps.models.course_details import CourseDetails
 from opaque_keys.edx.keys import CourseKey
@@ -13,8 +14,6 @@ from course_modes.models import CourseMode
 from student.models import CourseEnrollment, AlreadyEnrolledError
 
 import prediction
-
-from django.conf import settings
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
                     PredictionForUser)
@@ -56,19 +55,17 @@ class RaccoonBot(object):
             '/my_courses': "You can see only your courses",
             '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
             '/reminder': "In 30 seconds bot will remind you that you are idiot",
-            '/die': "Don't even think about it, motherfucker"
+            # '/die': "Don't even think about it, motherfucker"
         }
 
         prediction.get_coursed_and_create_matrix()
 
-        print "*" * 88
-        print "run bot"
         self.updater = Updater(token=settings.TELEGRAM_BOT.get('token'), workers=10)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 
         self.dispatcher.addTelegramCommandHandler('hi', self.hi)
-        self.dispatcher.addTelegramCommandHandler('die', self.die)
+        # self.dispatcher.addTelegramCommandHandler('die', self.die)
         self.dispatcher.addTelegramCommandHandler('help', self.help)
         self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
@@ -183,10 +180,6 @@ class RaccoonBot(object):
         PredictionForUser.objects.get(telegram_user=telegram_user).delete()
 
     def hi(self, bot, update):
-        print bot
-        print '*' * 50
-        print update.message.from_user.id
-        print '=' * 50
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendMessage(chat_id=chat_id, text="Hello, human, I'm glad to see you")
@@ -206,7 +199,6 @@ class RaccoonBot(object):
                 else:
                     bot.sendMessage(chat_id=chat_id, text="*Short course description*",
                                     parse_mode=telegram.ParseMode.MARKDOWN)
-                    print each
                     course_key = each.id
                     current_site = Site.objects.get_current()
                     course_title = modulestore().get_course(course_key).display_name_with_default
@@ -220,7 +212,6 @@ class RaccoonBot(object):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         message = update.message.text
-        print update
         if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
             course_name = message[1:]
             self.get_course_description(bot, update, course_name)
@@ -334,8 +325,6 @@ class RaccoonBot(object):
             bot.sendMessage(chat_id=chat_id, text=command + ' - ' + description)
 
     def send_hash(self, bot, update):
-        print 'send hash'
-        print update
         chat_id = update.message.chat_id
         user_hash = update.message.text
         try:
@@ -348,7 +337,6 @@ class RaccoonBot(object):
             bot.sendMessage(chat_id=chat_id, text="Auth token doesn't correct")
 
     def reminder(self, bot, update):
-        print 'reminder'
         chat_id = update.message.chat_id
 
         def job(bot):
@@ -356,6 +344,3 @@ class RaccoonBot(object):
                                                   ' you that you are fucking idiot')
 
         self.j.put(job, 30, repeat=False)
-
-
-print "start"
