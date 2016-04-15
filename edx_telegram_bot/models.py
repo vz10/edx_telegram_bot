@@ -22,12 +22,13 @@ import telegram
 @receiver(pre_save, sender=CourseEnrollment)
 def someone_enrolls(sender, instance, **kwargs):
     bot = telegram.Bot(token=settings.TELEGRAM_BOT.get('token'))
-    if instance.is_active and not CourseEnrollment.objects.get(id=instance.id).is_active:
+    prev_enrollment = CourseEnrollment.objects.filter(user=instance.user, course_id=instance.course_id).exists()
+    if instance.is_active and not prev_enrollment:
         telegram_user = EdxTelegramUser.objects.filter(student=instance.user).first()
         course_bot = BotFriendlyCourses.objects.filter(course_key=instance.course_id).first()
         course_title = modulestore().get_course(instance.course_id).display_name_with_default
         if course_bot:
-            message = "I see you've enrolled to the *%s*. There is a bot [%s](https://telegram.me/%s)"\
+            message = "I see you've enrolled to the *%s*. There is a bot [%s](https://telegram.me/%s?start=start)"\
                        " linked to the course, I recommend you to chat with him" %\
                        (course_title, course_bot.bot_name, course_bot.bot_name)
             bot.sendMessage(chat_id=telegram_user.telegram_id,
@@ -60,7 +61,7 @@ class EdxTelegramUser(models.Model):
         """
         str_to_hash = str(self.student.pk) + str(self.student.username) + str(self.modified)
 
-        return "hash::" + hashlib.md5(str_to_hash).hexdigest()
+        return hashlib.md5(str_to_hash).hexdigest()
 
     @staticmethod
     def post_save(sender, instance, created, **kwargs):
@@ -153,7 +154,7 @@ class UserCourseProgress(models.Model):
     telegram_user = models.ForeignKey(EdxTelegramUser)
     course_key = models.CharField(max_length=100)
     current_step_order = models.IntegerField(default=0)
-    current_step_status = models.CharField(max_length=6, choices=STATUSES, default=STATUS_START)
+    current_step_status = models.CharField(max_length=6, choices=STATUSES, default=STATUS_TEST)
 
 
 class BotFriendlyCourses(models.Model):

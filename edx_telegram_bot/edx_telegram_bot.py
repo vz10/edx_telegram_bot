@@ -16,7 +16,7 @@ from student.models import CourseEnrollment, AlreadyEnrolledError
 import prediction
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
-                    PredictionForUser)
+                    PredictionForUser, BotFriendlyCourses)
 
 
 def truncate_course_info(course_info):
@@ -71,6 +71,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
+        self.dispatcher.addTelegramCommandHandler('start', self.send_hash)
         self.dispatcher.addTelegramCommandHandler('recommendations', self.recommend)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
@@ -93,14 +94,16 @@ class RaccoonBot(object):
                 enroll_mode = CourseMode.auto_enroll_mode(course_key, available_modes)
                 if enroll_mode:
                     CourseEnrollment.enroll(user, course_key, check_access=True, mode=enroll_mode)
-                bot.sendMessage(chat_id=chat_id,
-                                text="You've been enrolled")
-                course_title = modulestore().get_course(course_key).display_name_with_default
-                self.get_course_description(bot, update, course_title)
+                if not BotFriendlyCourses.objects.filter(course_key=course_key).exists():
+                    bot.sendMessage(chat_id=chat_id,
+                                    text="You've been enrolled")
+                    course_title = modulestore().get_course(course_key).display_name_with_default
+                    self.get_course_description(bot, update, course_title)
             except AlreadyEnrolledError:
                 bot.sendMessage(chat_id=chat_id,
                                 text="It seems like you've been already enrolled, fucking idiot")
-            except Exception:
+            except Exception as e:
+                print e
                 bot.sendMessage(chat_id=chat_id,
                                 text="Something goes wrong")
 
@@ -212,6 +215,8 @@ class RaccoonBot(object):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         message = update.message.text
+        text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
+        sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
         if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
             course_name = message[1:]
             self.get_course_description(bot, update, course_name)
@@ -222,28 +227,26 @@ class RaccoonBot(object):
         if message.find(Emoji.ORANGE_BOOK.decode('utf-8')) == 0:
             self.learning(bot, update, is_positive=False)
             return
-        if message.find(Emoji.FLEXED_BICEPS.decode('utf-8')) == 0:
-            self.predict_answer(bot, update, enroll=True, yes=True)
-            return
-        if message.find(Emoji.YELLOW_HEART.decode('utf-8')) == 0:
-            self.predict_answer(bot, update, yes=True)
-            return
-        if message.find(Emoji.PILE_OF_POO.decode('utf-8')) == 0:
-            self.predict_answer(bot, update)
-            return
         if message.find(Emoji.T_SHIRT.decode('utf-8')) == 0:
             self.my_courses(bot, update)
             return
         if message.find(Emoji.FATHER_CHRISTMAS.decode('utf-8')) == 0:
             self.courses(bot, update)
             return
-        if message.find('hash::') == 0:
-            self.send_hash(bot, update)
+        if message.find(Emoji.FLEXED_BICEPS.decode('utf-8')) == 0:
+            self.predict_answer(bot, update, enroll=True, yes=True)
             return
+        if message.find(Emoji.YELLOW_HEART.decode('utf-8')) == 0:
+            self.predict_answer(bot, update, yes=True)
+            text = "Thank you for your answer, it will help me to improve my recomendations in future"
+            sticker = 'AAQEABPN7mEwAASL2MiUKJE3ZUkmAAIC'
+        if message.find(Emoji.PILE_OF_POO.decode('utf-8')) == 0:
+            self.predict_answer(bot, update)
+            text = "Thank you for your answer, it will help me to improve my recomendations in future"
+            sticker = 'AAQEABPN7mEwAASL2MiUKJE3ZUkmAAIC'
 
-        bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
-        message = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
-        bot.sendMessage(chat_id=chat_id, text=message)
+        bot.sendSticker(chat_id=chat_id, sticker=sticker)
+        bot.sendMessage(chat_id=chat_id, text=text)
 
     def unknown(self, bot, update):
         chat_id = update.message.chat_id
@@ -326,7 +329,8 @@ class RaccoonBot(object):
 
     def send_hash(self, bot, update):
         chat_id = update.message.chat_id
-        user_hash = update.message.text
+        user_hash = update.message.text[7:]
+        print user_hash
         try:
             edx_telegram_user = EdxTelegramUser.objects.get(hash=user_hash)
             edx_telegram_user.telegram_id = chat_id

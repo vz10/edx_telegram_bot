@@ -24,11 +24,10 @@ class CourseBot(object):
             '/my_courses': "You can see only your courses",
             '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
             '/reminder': "In 30 seconds bot will remind you that you are idiot",
-            '/die': "Don't even think about it, motherfucker"
+            # '/die': "Don't even think about it, motherfucker"
         }
 
-        print "*" * 88
-        print "run course bot"
+
         self.updater = Updater(token=settings.TELEGRAM_BOT.get('course_bot_token'), workers=10)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
@@ -88,13 +87,12 @@ class CourseBot(object):
                         [Emoji.ORANGE_BOOK.decode('utf-8') + 'I need to read something about it first']]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
-            answers = current_step['Wrong answers'] + [current_step['Right answer']]
+            answers = current_step['Wrong_answers'] + [current_step['Right_answer']]
             keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + answer] for answer in answers]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
             keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'Now I can help you']]
-            message = current_step['Theoretical part']
-
+            message = current_step['Theoretical_part']
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
@@ -106,25 +104,20 @@ class CourseBot(object):
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
-
-        if answer == current_step['Right answer']:
+        if answer == current_step['Right_answer']:
             bot.sendMessage(chat_id=chat_id,
-                            text=current_step['Positive answer'])
+                            text=current_step['Positive_answer'])
             progress.current_step_status = UserCourseProgress.STATUS_START
-            progress.current_step_order = current_step['Next step order']
+            progress.current_step_order = current_step['Next_step_order']
             progress.save()
         else:
             bot.sendMessage(chat_id=chat_id,
-                            text=current_step['Negative answer'])
+                            text=current_step['Negative_answer'])
             progress.current_step_status = UserCourseProgress.STATUS_INFO
             progress.save()
         self.show_progress(bot, update)
 
     def hi(self, bot, update):
-        print bot
-        print '*' * 50
-        print update.message.from_user.id
-        print '=' * 50
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendMessage(chat_id=chat_id, text="Hello, human, I'm glad to see you")

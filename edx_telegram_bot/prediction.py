@@ -36,7 +36,7 @@ def get_coursed_and_create_matrix():
 
 def get_stop_words():
    result = set()
-   for line in open('edx-telegram-bot/edx_telegram_bot/stopwords_en.txt', 'r').readlines():
+   for line in open('edx_telegram_bot/edx_telegram_bot/stopwords_en.txt', 'r').readlines():
         result.add(line.strip())
    return result
 
@@ -101,5 +101,3 @@ def prediction(telegram_id):
     # print little_random
     # return related_docs_indices[-little_random]
     return 0
-
-
