@@ -113,7 +113,7 @@ class CourseBot(object):
                 progress.current_step_order = current_step['Next_step_order']
                 progress.save()
             except KeyError:
-                progress.current_step_order = UserCourseProgress.STATUS_END
+                progress.current_step_status = UserCourseProgress.STATUS_END
                 progress.save()
                 return
         else:
