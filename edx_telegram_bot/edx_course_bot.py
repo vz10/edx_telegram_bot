@@ -137,7 +137,7 @@ class CourseBot(object):
         message = update.message.text
         if progress.current_step_status == UserCourseProgress.STATUS_END:
             bot.sendMessage(chat_id=chat_id,
-                            text='The course id finished, nobody home, come back later.')
+                            text='The course is finished, nobody home, come back later.')
             return
         if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
             answer = message[1:]
