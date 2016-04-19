@@ -33,5 +33,4 @@ class Command(BaseCommand):
                                     'Theoretical_part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
                                     'Negative_answer': "I can't belive that you are such an idiot",
                                     'Positive_answer': "You are great, thanks",
-                                    'Order': 2,
-                                    'Next_step_order': 3})
+                                    'Order': 2,})
