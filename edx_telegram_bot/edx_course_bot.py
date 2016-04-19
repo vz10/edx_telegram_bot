@@ -108,11 +108,11 @@ class CourseBot(object):
         if answer == current_step['Right_answer']:
             bot.sendMessage(chat_id=chat_id,
                             text=current_step['Positive_answer'])
-            if current_step['Next_step_order']:
+            try:
                 progress.current_step_status = UserCourseProgress.STATUS_START
                 progress.current_step_order = current_step['Next_step_order']
                 progress.save()
-            else:
+            except KeyError:
                 progress.current_step_order = UserCourseProgress.STATUS_END
                 progress.save()
                 return
