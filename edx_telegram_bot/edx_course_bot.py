@@ -109,8 +109,11 @@ class CourseBot(object):
             bot.sendMessage(chat_id=chat_id,
                             text=current_step['Positive_answer'])
             progress.current_step_status = UserCourseProgress.STATUS_START
-            progress.current_step_order = current_step['Next_step_order']
-            progress.save()
+            if current_step['Next_step_order']:
+                progress.current_step_order = current_step['Next_step_order']
+                progress.save()
+            else:
+                return
         else:
             bot.sendMessage(chat_id=chat_id,
                             text=current_step['Negative_answer'])
