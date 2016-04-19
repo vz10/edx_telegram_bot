@@ -19,10 +19,11 @@ class CourseBot(object):
 
         self.commands = {
             '/hi': 'Try it if you want to say hi to the Bot',
-            '/courses': 'You can choose what kind of courses you are interesting in',
-            '/all_courses': "You can see all available courses",
-            '/my_courses': "You can see only your courses",
-            '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
+            'nothing more...': 'For more talking use keyboard in course '
+            # '/courses': 'You can choose what kind of courses you are interesting in',
+            # '/all_courses': "You can see all available courses",
+            # '/my_courses': "You can see only your courses",
+            # '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
             # '/reminder': "In 30 seconds bot will remind you that you are idiot",
             # '/die': "Don't even think about it, motherfucker"
         }
