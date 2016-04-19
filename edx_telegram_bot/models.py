@@ -145,10 +145,12 @@ class UserCourseProgress(models.Model):
     STATUS_START = 'start'
     STATUS_INFO = 'info'
     STATUS_TEST = 'test'
+    STATUS_END = 'end'
     STATUSES = (
         (STATUS_START, 'Start'),
         (STATUS_INFO, 'Info'),
-        (STATUS_TEST, 'Test')
+        (STATUS_TEST, 'Test'),
+        (STATUS_END, 'end'),
     )
 
     telegram_user = models.ForeignKey(EdxTelegramUser)

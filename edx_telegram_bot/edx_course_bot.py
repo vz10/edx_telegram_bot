@@ -113,6 +113,8 @@ class CourseBot(object):
                 progress.current_step_order = current_step['Next_step_order']
                 progress.save()
             else:
+                progress.current_step_order = UserCourseProgress.STATUS_END
+                progress.save()
                 return
         else:
             bot.sendMessage(chat_id=chat_id,
@@ -133,6 +135,10 @@ class CourseBot(object):
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         message = update.message.text
+        if progress.current_step_status == UserCourseProgress.STATUS_END:
+            bot.sendMessage(chat_id=chat_id,
+                            text='The course id finished, nobody home, come back later.')
+            return
         if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
             answer = message[1:]
             self.check_test(bot, update, answer)
