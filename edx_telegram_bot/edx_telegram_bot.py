@@ -54,7 +54,7 @@ class RaccoonBot(object):
             '/all_courses': "You can see all available courses",
             '/my_courses': "You can see only your courses",
             '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
-            '/reminder': "In 30 seconds bot will remind you that you are idiot",
+            # '/reminder': "In 30 seconds bot will remind you that you are idiot",
             # '/die': "Don't even think about it, motherfucker"
         }
 
@@ -67,7 +67,7 @@ class RaccoonBot(object):
         self.dispatcher.addTelegramCommandHandler('hi', self.hi)
         # self.dispatcher.addTelegramCommandHandler('die', self.die)
         self.dispatcher.addTelegramCommandHandler('help', self.help)
-        self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
+        # self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
@@ -101,7 +101,7 @@ class RaccoonBot(object):
                     self.get_course_description(bot, update, course_title)
             except AlreadyEnrolledError:
                 bot.sendMessage(chat_id=chat_id,
-                                text="It seems like you've been already enrolled, fucking idiot")
+                                text="It seems like you've been already enrolled to that course")
             except Exception as e:
                 print e
                 bot.sendMessage(chat_id=chat_id,
@@ -121,8 +121,8 @@ class RaccoonBot(object):
         if len(test_courses) > 0:
             course_id = MatrixEdxCoursesId.objects.get(course_index=test_courses[0]).course_key
             course_key = CourseKey.from_string(course_id)
-            keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it'],
-                        [Emoji.ORANGE_BOOK.decode('utf-8') + 'What the shit is this']]
+            keyboard = [[Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8') + 'I like it!'],
+                        [Emoji.ORANGE_BOOK.decode('utf-8') + "Hmmm. I don't like at all!"]]
         else:
             predicted_course_id = prediction.prediction(telegram_id)
 
@@ -133,7 +133,7 @@ class RaccoonBot(object):
 
             predicted_course_key = MatrixEdxCoursesId.objects.get(course_index=predicted_course_id).course_key
             bot.sendMessage(chat_id=chat_id,
-                            text="Now I'm going to recommend you some shitty courses")
+                            text="Now I'm going to recommend you some great courses")
             course_key = CourseKey.from_string(predicted_course_key)
 
             course_for_user = PredictionForUser.objects.get_or_create(telegram_user=telegram_user)[0]
@@ -142,7 +142,7 @@ class RaccoonBot(object):
 
             keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'I like it and I want to enroll'],
                         [Emoji.YELLOW_HEART.decode('utf-8') + 'I like it but will eroll another time'],
-                        [Emoji.PILE_OF_POO.decode('utf-8') + 'What the shit is this']]
+                        [Emoji.PILE_OF_POO.decode('utf-8') + "What the shit is this (I don't like it)"]]
 
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         course_description = CourseDetails.fetch_about_attribute(course_key, 'overview')
@@ -330,7 +330,6 @@ class RaccoonBot(object):
     def send_hash(self, bot, update):
         chat_id = update.message.chat_id
         user_hash = update.message.text[7:]
-        print user_hash
         try:
             edx_telegram_user = EdxTelegramUser.objects.get(hash=user_hash)
             edx_telegram_user.telegram_id = chat_id

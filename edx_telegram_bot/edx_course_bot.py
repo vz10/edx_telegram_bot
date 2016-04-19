@@ -23,7 +23,7 @@ class CourseBot(object):
             '/all_courses': "You can see all available courses",
             '/my_courses': "You can see only your courses",
             '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
-            '/reminder': "In 30 seconds bot will remind you that you are idiot",
+            # '/reminder': "In 30 seconds bot will remind you that you are idiot",
             # '/die': "Don't even think about it, motherfucker"
         }
 
@@ -33,9 +33,9 @@ class CourseBot(object):
         self.j = self.updater.job_queue
 
         self.dispatcher.addTelegramCommandHandler('hi', self.hi)
-        self.dispatcher.addTelegramCommandHandler('die', self.die)
+        # self.dispatcher.addTelegramCommandHandler('die', self.die)
         self.dispatcher.addTelegramCommandHandler('help', self.help)
-        self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
+        # self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
         self.dispatcher.addTelegramCommandHandler('start', self.start)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
