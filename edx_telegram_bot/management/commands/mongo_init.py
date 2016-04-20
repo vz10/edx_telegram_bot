@@ -31,7 +31,7 @@ class Command(BaseCommand):
                                             ''',
                                 'Wrong_answers': ['Конечно нет, все еноты тупые', 'Енот может воровать еду и не более'],
                                 'Right_answer': 'На самом деле они очень умные создания',
-                                'Image_url': 'https://pbs.twimg.com/profile_images/642470934197235712/3rdvAC6R.jpg',
+                                'Image_url': 'https://dl.dropboxusercontent.com/u/20018982/smart_raccoon.jpg',
                                 'Theoretical_part': '''
 high IQ level of raccoons is one of the most amazing raccoon facts in this list. According to experts, raccoons scored very high on the mammal IQ level test. They are found to be more intelligent than cats. They have amazing skills of opening locks and close doors. In a study, in total of 13 locks, raccoons were able to open 11 locks. They were also able to memorize the combination which suggests raccoons were intelligent enough to understand the complex mechanism of locks. Raccoons have amazing and quick learning skills. They can memorize the solution of complex mechanism for three years and they can also identify and differentiate between different symbols.
 Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon Gang :D
@@ -48,6 +48,7 @@ Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon
                                 'Wrong_answers': ['Один палец', 'Два больших и один маленький', '4 пальца'],
                                 'Right_answer': '5 пальцев',
                                 'Theoretical_part': "A raccoon’s hands are so nimble they can unlace a shoe, unlatch a cage and deftly retrieve coins as thin as dimes from your shirt pocket.",
+                                'Image_url': 'https://dl.dropboxusercontent.com/u/20018982/racoon_pow.jpg',
                                 'Negative_answer': "На самом деле еноты гораздо сильнее похожи на людей, чем ты думауешь, давай еще раз попробуем.",
                                 'Positive_answer': "Не стоит так радоваться. Это было просто. ;)",
                                 'Order': 2,

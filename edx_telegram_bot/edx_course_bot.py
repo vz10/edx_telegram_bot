@@ -62,7 +62,7 @@ class CourseBot(object):
     def start(self, bot, update):
         telegram_id = update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
-        progress, cr = UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
+        UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
         self.show_progress(bot, update)
 
     def show_progress(self, bot, update):
@@ -84,7 +84,7 @@ class CourseBot(object):
             keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') +  bot_messages['now_i_can'].decode('utf-8')]]
             message = current_step['Theoretical_part']
             if 'Image_url' in current_step:
-                bot.sendPhoto(chat_id=chat_id, photo=current_step['Image_url'].decode('utf-8'))
+                bot.sendPhoto(chat_id=chat_id, photo=current_step['Image_url'].encode('utf-8', 'strict'))
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
@@ -177,7 +177,7 @@ class CourseBot(object):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         time.sleep(1)
-        bot.sendPhoto(chat_id=update.message.chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
+        bot.sendPhoto(chat_id=chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
         bot.sendMessage(chat_id=chat_id,
                         text="I have a lot of raccoon-workers, all of them want to help you, but they not"\
                              " very smart so they can understand only such commands:")
