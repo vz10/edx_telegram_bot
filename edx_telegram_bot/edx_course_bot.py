@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import time
-from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction, ParseMode
+import telegram
+import random
+from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
 
 from bot_mongo import BotMongo
 
@@ -56,27 +58,6 @@ class CourseBot(object):
         self.course_key = kwargs.get('collection', 'course_name')
         self.mongo_client = BotMongo(database='bot', collection=self.course_key)
 
-
-        #Initial fixtures for mongo collection
-        # self.mongo_client.send({'Problem': 'I have a problem, do you know how to solve it',
-        #                         'Wrong_answers': ['First wrong answer', 'Second wrong answer', 'Third wrong answer'],
-        #                         'Right_answer': 'Right answer',
-        #                         'Theoretical_part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
-        #                         'Negative_answer': "I can't belive that you are such an idiot",
-        #                         'Positive_answer': "You are great, thanks",
-        #                         'Order': 0,
-        #                         'Next_step_order':1})
-        #
-        # self.mongo_client.send({'Problem': 'I have another problem, do you know how to solve it',
-        #                         'Wrong_answers': ['another First wrong answer', 'another Second wrong answer', 'another Third wrong answer'],
-        #                         'Right_answer': 'another Right answer',
-        #                         'Theoretical_part': "Oh fucking idiot, you can not event distinguish wrong answer from right",
-        #                         'Negative_answer': "I can't belive that you are such an idiot",
-        #                         'Positive_answer': "You are great, thanks",
-        #                         'Order': 1,
-        #                         'Next_step_order':2})
-        # a = self.mongo_client.find_one({'field':'Content of that field'})
-
     @is_telegram_user
     def start(self, bot, update):
         telegram_id = update.message.from_user.id
@@ -91,21 +72,24 @@ class CourseBot(object):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
         if progress.current_step_status == UserCourseProgress.STATUS_START:
-            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + bot_messages['help_now']]],
-                        [Emoji.ORANGE_BOOK.decode('utf-8') + bot_messages['not_now']]]
+            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + bot_messages['help_now'].decode('utf-8')],
+                        [Emoji.ORANGE_BOOK.decode('utf-8') + bot_messages['not_know'].decode('utf-8')]]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
             answers = current_step['Wrong_answers'] + [current_step['Right_answer']]
+            print answers
+            random.shuffle(answers)
+            print
             keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + answer] for answer in answers]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
-            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') +  bot_messages['now_i_can']]]
+            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') +  bot_messages['now_i_can'].decode('utf-8')]]
             message = current_step['Theoretical_part']
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
                         reply_markup=reply_markup,
-                        parse_mode=ParseMode.MARKDOWN)
+                        parse_mode=telegram.ParseMode.MARKDOWN)
 
     def check_test(self, bot, update, answer):
         chat_id = update.message.chat_id
@@ -115,7 +99,8 @@ class CourseBot(object):
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
         if answer == current_step['Right_answer']:
             bot.sendMessage(chat_id=chat_id,
-                            text=current_step['Positive_answer'])
+                            text=current_step['Positive_answer'],
+                            parse_mode=telegram.ParseMode.MARKDOWN)
             try:
                 progress.current_step_status = UserCourseProgress.STATUS_START
                 progress.current_step_order = current_step['Next_step_order']
@@ -124,12 +109,15 @@ class CourseBot(object):
                 progress.current_step_status = UserCourseProgress.STATUS_END
                 progress.save()
                 return
+            self.show_progress(bot, update)
         else:
+            keyboard = [[Emoji.ORANGE_BOOK.decode('utf-8') + bot_messages['not_know'].decode('utf-8')]]
+            reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
             bot.sendMessage(chat_id=chat_id,
-                            text=current_step['Negative_answer'])
-            progress.current_step_status = UserCourseProgress.STATUS_INFO
-            progress.save()
-        self.show_progress(bot, update)
+                            text=current_step['Negative_answer'],
+                            reply_markup=reply_markup,
+                            parse_mode=telegram.ParseMode.MARKDOWN)
+
 
     def hi(self, bot, update):
         chat_id = update.message.chat_id

@@ -15,37 +15,34 @@ class Command(BaseCommand):
         #  Initial fixtures for mongo collection
         # Introduction step
         self.mongo_client.send({'Problem': """
-                                            **Помоги Еноту Петру в реформировании собственного зоопарка**
-                                            Енот Петр был одним из жителей Зоопарка “Межлисся”. Он стал вожаком животных после бегства Кабана Виктора. Парой месяцев до того лидер хряков бежал в соседний зоопарк “Северный Писец” из-за того что зажрался.
-                                            Зоопарк был в плачевном состоянии. При побеге, Виктор вынес практически все запасы сьестного, прихватив южную часть угодий.
-
+*Помоги Еноту Петру в реформировании собственного зоопарка*
+Енот Петр был одним из жителей Зоопарка “Межлисся”. Он стал вожаком животных после бегства Кабана Виктора. Парой месяцев до того лидер хряков бежал в соседний зоопарк “Северный Писец” из-за того что зажрался.
+Зоопарк был в плачевном состоянии. При побеге, Виктор вынес практически все запасы сьестного, прихватив южную часть угодий.
                                             """,
                                'Right_answer': "Я готов!",
                                'Wrong_answers': [],
-                               'Positive_answer': "Ты просто мой герой, тогда вперед.",
+                               'Positive_answer': "*Ты просто мой герой, тогда вперед.*",
                                'Order': 0,
                                'Next_step_order': 1})
         # Step 1
         self.mongo_client.send({'Problem': '''
-                                            Петр предложил свою кандидатуру на пост вожака. Он объяснял это тем, что нет животного в зоопарке, способного запустить маховик реформ.
-                                            *Как считаешь, способны ли Еноты на осмысленные действия? Хватит ли ума у Енота на проведения реформ?*
-
+Петр предложил свою кандидатуру на пост вожака. Он объяснял это тем, что нет животного в зоопарке, способного запустить маховик реформ.
+***Как считаешь, способны ли Еноты на осмысленные действия? Хватит ли ума у Енота на проведения реформ?***
                                             ''',
                                 'Wrong_answers': ['Конечно нет, все еноты тупые, как пробки', 'Енот достаточно умен, чтобы воровать еду, но не чтобы проводить реформы'],
                                 'Right_answer': 'У него все выйдет, потому что еноты очень умные создания',
                                 'Theoretical_part': '''
-                                            The high IQ level of raccoons is one of the most amazing raccoon facts in this list. According to experts, raccoons scored very high on the mammal IQ level test. They are found to be more intelligent than cats. They have amazing skills of opening locks and close doors. In a study, in total of 13 locks, raccoons were able to open 11 locks. They were also able to memorize the combination which suggests raccoons were intelligent enough to understand the complex mechanism of locks. Raccoons have amazing and quick learning skills. They can memorize the solution of complex mechanism for three years and they can also identify and differentiate between different symbols.
-                                            Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon Gang :D
+high IQ level of raccoons is one of the most amazing raccoon facts in this list. According to experts, raccoons scored very high on the mammal IQ level test. They are found to be more intelligent than cats. They have amazing skills of opening locks and close doors. In a study, in total of 13 locks, raccoons were able to open 11 locks. They were also able to memorize the combination which suggests raccoons were intelligent enough to understand the complex mechanism of locks. Raccoons have amazing and quick learning skills. They can memorize the solution of complex mechanism for three years and they can also identify and differentiate between different symbols.
+Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon Gang :D
                                             ''',
                                 'Negative_answer': "Зря ты так про енотов, я ведь знаю твой Telegram ID. Лучше попробуй еще раз.",
-                                'Positive_answer': "Точно, еноты лучшие, поэтому у него все выйдет",
+                                'Positive_answer': "*Точно, еноты лучшие, поэтому у него все выйдет*",
                                 'Order': 1,
                                 'Next_step_order': 2})
         # Step 2
         self.mongo_client.send({'Problem': '''
-                                            Посовещавшись, животные дали ему мандат доверия на столько лет, сколько пальцев у него было на лапе.
-                                            *Как думаешь сколько у енота пальцев на лапе?*
-
+Посовещавшись, животные дали ему мандат доверия на столько лет, сколько пальцев у него было на лапе.
+***Как думаешь сколько у енота пальцев на лапе?***
                                             ''',
                                 'Wrong_answers': ['Один палец', 'Два больших и один маленький', '4 пальца'],
                                 'Right_answer': '5 пальцев',
@@ -56,9 +53,8 @@ class Command(BaseCommand):
                                 'Next_step_order': 3})
         # Step 3
         self.mongo_client.send({'Problem': '''
-                                            Петру начали помогать многие его друзья, одним из которы был Кролик Сеня. Сеня очень любил морковку. Морковки в государстве было мало, а собственные грядки были разорены сбегавшими Кабаном Виктором и стадом его прихвостней. Было решено взять морковки взаймы у соседних зоопарков. Но разве одной морковкой поможешь?
-                                            *Кстати, а что вообще едят еонты?*
-
+Петру начали помогать многие его друзья, одним из которы был Кролик Сеня. Сеня очень любил морковку. Морковки в государстве было мало, а собственные грядки были разорены сбегавшими Кабаном Виктором и стадом его прихвостней. Было решено взять морковки взаймы у соседних зоопарков. Но разве одной морковкой поможешь?
+* _Кстати, а что вообще едят еонты?_ *
                                             ''',
                                 'Wrong_answers': ['Пьют пиво и едят чипсы', 'Пьют пиво и едят мясо', 'Пицца и бургеры'],
                                 'Right_answer': 'Что-то другое',
@@ -69,9 +65,8 @@ class Command(BaseCommand):
                                 'Next_step_order': 4})
         # Step 4
         self.mongo_client.send({'Problem': '''
-                                    Пронырливые сороки выяснили, что Енот Петр бегал в соседний зоопарк, чтобы мыть там морковь. Предположительно, Петр мыл ее там, ибо вода в пруду мутная и не видно сколько моркови оседает на дне. Несмотря на то, что все это держалось в строгой тайне, попался не только он, но и руководитель «Северного Песца» - Пудель Вова.
-                                    *А ты как думаешь, вправду ли Еноты полощат еду?*
-
+Пронырливые сороки выяснили, что Енот Петр бегал в соседний зоопарк, чтобы мыть там морковь. Предположительно, Петр мыл ее там, ибо вода в пруду мутная и не видно сколько моркови оседает на дне. Несмотря на то, что все это держалось в строгой тайне, попался не только он, но и руководитель «Северного Песца» - Пудель Вова.
+_*А ты как думаешь, вправду ли Еноты полощат еду?*_
                                     ''',
                                 'Wrong_answers': ['Всегда полощат перед едой', 'Полощат только грязную еду'],
                                 'Right_answer': 'Ничего они не полощат, это все клевета',
@@ -82,8 +77,8 @@ class Command(BaseCommand):
                                 'Next_step_order': 5})
         # Step 5
         self.mongo_client.send({'Problem': '''
-                                   Звери начали постепенно разочаровываться в Петре. Хватит ли времени у Енота, чтобы навести порядок в зоопарке?
-                                   *Сколько Еноты обычно живут?*
+Звери начали постепенно разочаровываться в Петре. Хватит ли времени у Енота, чтобы навести порядок в зоопарке?
+_*Сколько Еноты обычно живут?*_
                                     ''',
                                 'Wrong_answers': ['Меньше 5 лет', 'До 10 лет', 'До 15 лет'],
                                 'Right_answer': 'Более 15 лет',
