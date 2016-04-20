@@ -21,7 +21,6 @@ class Command(BaseCommand):
                                             """,
                                'Right_answer': "Я готов!",
                                'Wrong_answers': [],
-                               'Image_url': 'https://s-media-cache-ak0.pinimg.com/736x/a7/54/e7/a754e7ff082fb93173f42f0ff5a4b15d.jpg',
                                'Positive_answer': "*Ты просто мой герой, тогда вперед.*",
                                'Order': 0,
                                'Next_step_order': 1})
@@ -32,6 +31,7 @@ class Command(BaseCommand):
                                             ''',
                                 'Wrong_answers': ['Конечно нет, все еноты тупые', 'Енот может воровать еду и не более'],
                                 'Right_answer': 'На самом деле они очень умные создания',
+                                'Image_url': 'https://s-media-cache-ak0.pinimg.com/736x/a7/54/e7/a754e7ff082fb93173f42f0ff5a4b15d.jpg',
                                 'Theoretical_part': '''
 high IQ level of raccoons is one of the most amazing raccoon facts in this list. According to experts, raccoons scored very high on the mammal IQ level test. They are found to be more intelligent than cats. They have amazing skills of opening locks and close doors. In a study, in total of 13 locks, raccoons were able to open 11 locks. They were also able to memorize the combination which suggests raccoons were intelligent enough to understand the complex mechanism of locks. Raccoons have amazing and quick learning skills. They can memorize the solution of complex mechanism for three years and they can also identify and differentiate between different symbols.
 Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon Gang :D
