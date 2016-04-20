@@ -84,7 +84,7 @@ class CourseBot(object):
             keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') +  bot_messages['now_i_can'].decode('utf-8')]]
             message = current_step['Theoretical_part']
             if 'Image_url' in current_step:
-                bot.sendPhoto(chat_id=chat_id, photo=current_step['Image_url'])
+                bot.sendPhoto(chat_id=chat_id, photo=current_step['Image_url'].decode('utf-8'))
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
