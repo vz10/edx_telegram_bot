@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction
+from telegram import Updater, ReplyKeyboardMarkup, Emoji, ChatAction, ParseMode
 
 from bot_mongo import BotMongo
 
@@ -9,6 +9,13 @@ from django.conf import settings
 from models import (EdxTelegramUser, UserCourseProgress)
 from edx_telegram_bot import is_telegram_user
 
+
+bot_messages = {
+    'help_now': "Я уже знаю правильный ответ",
+    'not_know': "Нужно почитать немного теории",
+    'now_i_can': "Теперь я готов ответить",
+
+}
 
 class CourseBot(object):
     def __init__(self, **kwargs):
@@ -84,20 +91,21 @@ class CourseBot(object):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
         if progress.current_step_status == UserCourseProgress.STATUS_START:
-            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'I can help you right now'],
-                        [Emoji.ORANGE_BOOK.decode('utf-8') + 'I need to read something about it first']]
+            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + bot_messages['help_now']]],
+                        [Emoji.ORANGE_BOOK.decode('utf-8') + bot_messages['not_now']]]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
             answers = current_step['Wrong_answers'] + [current_step['Right_answer']]
             keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + answer] for answer in answers]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
-            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + 'Now I can help you']]
+            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') +  bot_messages['now_i_can']]]
             message = current_step['Theoretical_part']
         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
-                        reply_markup=reply_markup)
+                        reply_markup=reply_markup,
+                        parse_mode=ParseMode.MARKDOWN)
 
     def check_test(self, bot, update, answer):
         chat_id = update.message.chat_id
