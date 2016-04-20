@@ -33,8 +33,8 @@ class Command(BaseCommand):
                                 'Right_answer': 'На самом деле они очень умные создания',
                                 'Image_url': 'https://dl.dropboxusercontent.com/u/20018982/smart_raccoon.jpg',
                                 'Theoretical_part': '''
-high IQ level of raccoons is one of the most amazing raccoon facts in this list. According to experts, raccoons scored very high on the mammal IQ level test. They are found to be more intelligent than cats. They have amazing skills of opening locks and close doors. In a study, in total of 13 locks, raccoons were able to open 11 locks. They were also able to memorize the combination which suggests raccoons were intelligent enough to understand the complex mechanism of locks. Raccoons have amazing and quick learning skills. They can memorize the solution of complex mechanism for three years and they can also identify and differentiate between different symbols.
-Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon Gang :D
+Одной из самых удивительных особенностей енота является его высокий уровень IQ, По мнению экспертов еноты входят в 15% самых умных млекопитающих. Они оказались умнее кошек и даже некоторых людей. Они обладают удивительными способностями открывания замков и запертых дверей. В процессе эксперимента, еноту удалось открыть 11 из 13 закрытых замков. Еноты легко и быстро обучаются. Они могут запомнить устройство сложного механизма и помнить его в течение 3 лет, они также могут различать разные символы.
+Кроме того, умнейшие еноты (iQ выше среднего для приматов) работаю в RaccoonGang :D
                                             ''',
                                 'Negative_answer': "Зря ты так про енотов, я ведь знаю твой Telegram ID. Лучше попробуй еще раз.",
                                 'Positive_answer': "*Точно, еноты лучшие, поэтому у него все выйдет*",
@@ -47,7 +47,7 @@ Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon
                                             ''',
                                 'Wrong_answers': ['Один палец', 'Два больших и один маленький', '4 пальца'],
                                 'Right_answer': '5 пальцев',
-                                'Theoretical_part': "A raccoon’s hands are so nimble they can unlace a shoe, unlatch a cage and deftly retrieve coins as thin as dimes from your shirt pocket.",
+                                'Theoretical_part': "Лапы енотов настолько ловкие, что они могут расшнуровывать обувь, открывать клетки и ловко извлекать монеты ваших карманов.",
                                 'Image_url': 'https://dl.dropboxusercontent.com/u/20018982/racoon_pow.jpg',
                                 'Negative_answer': "На самом деле еноты гораздо сильнее похожи на людей, чем ты думауешь, давай еще раз попробуем.",
                                 'Positive_answer': "Не стоит так радоваться. Это было просто. ;)",
@@ -56,13 +56,14 @@ Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon
         # Step 3
         self.mongo_client.send({'Problem': '''
 Петру начали помогать многие его друзья, одним из которы был Кролик Сеня. Сеня очень любил морковку. Морковки в государстве было мало, а собственные грядки были разорены сбегавшими Кабаном Виктором и стадом его прихвостней. Было решено взять морковки взаймы у соседних зоопарков. Но разве одной морковкой поможешь?
-*Кстати, а что вообще едят еонты?*
+*Кстати, а что вообще едят еноты?*
                                             ''',
                                 'Wrong_answers': ['Пьют пиво и едят чипсы', 'Пьют пиво и едят мясо', 'Пицца и бургеры'],
-                                'Right_answer': 'Что-то другое',
-                                'Theoretical_part': "A raccoon’s hands are so nimble they can unlace a shoe, unlatch a cage and deftly retrieve coins as thin as dimes from your shirt pocket.",
-                                'Negative_answer': "Сам это ешь, еноты не настолько тупые.",
-                                'Positive_answer': "О да, я це люблю, давайте мне больше такой еды.",
+                                'Right_answer': 'Все вышеперечисленное и еще что-нибудь',
+                                'Theoretical_part': "Еноты практически всеядны. Они могут есть фрукты, ягоды, насекомых, орехи, яйца, мелких грызунов, виноград, кукурузу, крабов, раков и все то съедобное, что смогут найти у вас во дворе.",
+                                'Image_url':'https://dl.dropboxusercontent.com/u/20018982/raccoon_food.jpg',
+                                'Negative_answer': "Узко мыслишь.",
+                                'Positive_answer': "О да, я це люблю, давайте мне больше всей этой вкуснятины.",
                                 'Order': 3,
                                 'Next_step_order': 4})
         # Step 4
@@ -72,7 +73,8 @@ Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon
                                     ''',
                                 'Wrong_answers': ['Всегда полощат перед едой', 'Полощат только грязную еду'],
                                 'Right_answer': 'Ничего они не полощат, это все клевета',
-                                'Theoretical_part': 'They are true omnivores and are opportunistic in their diet. They will eat fruit, insects, berries, nuts, eggs, small rodents, grapes, corn, crabs, crayfish and anything edible you may have left in the backyard. It was once thought that raccoons washed their food. They do not. Raccoons have a highly sensitive sense of touch which water helps to enhance. Even when water is unavailable, raccoons will use the same motions while they manipulate their food or objects they are interested in. This tactile experience gives the raccoon a better sense of what it will be eating. It is as if they "see" with their hands.Raccoons have bad eyesight and are color blind, but have great hearing and a great sense of smell.',
+                                'Theoretical_part': 'Раньше считалось, что еноты моют свою еду. Но, на самом деле, это не так. Еноты обладают высокочувствительным осязанием, а вода помогает сделать его еще лучше. Даже когда вода недоступна, еноты используют те же движения, манипулируя своей едой или предметами, которые их заинтересовали. Этот тактильный опыт помогает еноту лучше разобраться что же собственно он собирается есть. Еноты практически видят при помощи лап, так как обладают очень плохим зрением да еще и дальтоники, но при этом нюхают и слышат хорошо. ',
+                                'Image_url': 'https://dl.dropboxusercontent.com/u/20018982/raccoon_wash.jpg',
                                 'Negative_answer': "Ожидаемо, все так думают, но это неправда",
                                 'Positive_answer': "Красавчик, вижу ты смотришь Animal Planet",
                                 'Order': 4,
@@ -84,7 +86,8 @@ Moreover, Smartest raccoons (IQ higher than average monkey has ) work in Raccoon
                                     ''',
                                 'Wrong_answers': ['Меньше 5 лет', 'До 10 лет', 'До 15 лет'],
                                 'Right_answer': 'Более 15 лет',
-                                'Theoretical_part': 'They are true omnivores and are opportunistic in their diet. They will eat fruit, insects, berries, nuts, eggs, small rodents, grapes, corn, crabs, crayfish and anything edible you may have left in the backyard. It was once thought that raccoons washed their food. They do not. Raccoons have a highly sensitive sense of touch which water helps to enhance. Even when water is unavailable, raccoons will use the same motions while they manipulate their food or objects they are interested in. This tactile experience gives the raccoon a better sense of what it will be eating. It is as if they "see" with their hands.Raccoons have bad eyesight and are color blind, but have great hearing and a great sense of smell.',
+                                'Theoretical_part': 'В дикой природе енот может прожить до 16 лет, но большинство из них не могут протянуть и более 2-х. Если еноту удается пережить свою молодость, то обычно они живут около 5 лет в дикой природе. Основными причинами смерти являются люди (охотники, капканы, автомобили) и недостаточное питание. В неволе же были зафиксированы случаи, когда енот доживал до 21 года.',
+                                'Image_url': 'https://dl.dropboxusercontent.com/u/20018982/raccoon-cubs.jpg',
                                 'Negative_answer': "Ты их недооцениваешь, Петр еще успеет простудиться на твоих похоронах",
                                 'Positive_answer': "Красавчик, вижу ты смотришь Animal Planet",
                                 'Order': 5,
