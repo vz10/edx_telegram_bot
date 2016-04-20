@@ -21,6 +21,7 @@ class Command(BaseCommand):
                                             """,
                                'Right_answer': "Я готов!",
                                'Wrong_answers': [],
+                               'Image_url': 'https://s-media-cache-ak0.pinimg.com/736x/a7/54/e7/a754e7ff082fb93173f42f0ff5a4b15d.jpg',
                                'Positive_answer': "*Ты просто мой герой, тогда вперед.*",
                                'Order': 0,
                                'Next_step_order': 1})
