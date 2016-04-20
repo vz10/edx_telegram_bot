@@ -28,7 +28,7 @@ class Command(BaseCommand):
         # Step 1
         self.mongo_client.send({'Problem': '''
                                             Петр предложил свою кандидатуру на пост вожака. Он объяснял это тем, что нет животного в зоопарке, способного запустить маховик реформ.
-                                            Как считаешь, способны ли Еноты на осмысленные действия? Хватит ли ума у Енота на проведения реформ?
+                                            *Как считаешь, способны ли Еноты на осмысленные действия? Хватит ли ума у Енота на проведения реформ?*
 
                                             ''',
                                 'Wrong_answers': ['Конечно нет, все еноты тупые, как пробки', 'Енот достаточно умен, чтобы воровать еду, но не чтобы проводить реформы'],
@@ -44,7 +44,7 @@ class Command(BaseCommand):
         # Step 2
         self.mongo_client.send({'Problem': '''
                                             Посовещавшись, животные дали ему мандат доверия на столько лет, сколько пальцев у него было на лапе.
-                                            Как думаешь сколько у енота пальцев на лапе?
+                                            *Как думаешь сколько у енота пальцев на лапе?*
 
                                             ''',
                                 'Wrong_answers': ['Один палец', 'Два больших и один маленький', '4 пальца'],
@@ -57,7 +57,7 @@ class Command(BaseCommand):
         # Step 3
         self.mongo_client.send({'Problem': '''
                                             Петру начали помогать многие его друзья, одним из которы был Кролик Сеня. Сеня очень любил морковку. Морковки в государстве было мало, а собственные грядки были разорены сбегавшими Кабаном Виктором и стадом его прихвостней. Было решено взять морковки взаймы у соседних зоопарков. Но разве одной морковкой поможешь?
-                                            Кстати, а что вообще едят еонты?
+                                            *Кстати, а что вообще едят еонты?*
 
                                             ''',
                                 'Wrong_answers': ['Пьют пиво и едят чипсы', 'Пьют пиво и едят мясо', 'Пицца и бургеры'],
@@ -66,4 +66,29 @@ class Command(BaseCommand):
                                 'Negative_answer': "Сам это ешь, еноты не настолько тупые.",
                                 'Positive_answer': "О да, я це люблю, давайте мне больше такой еды.",
                                 'Order': 3,
+                                'Next_step_order': 4})
+        # Step 4
+        self.mongo_client.send({'Problem': '''
+                                    Пронырливые сороки выяснили, что Енот Петр бегал в соседний зоопарк, чтобы мыть там морковь. Предположительно, Петр мыл ее там, ибо вода в пруду мутная и не видно сколько моркови оседает на дне. Несмотря на то, что все это держалось в строгой тайне, попался не только он, но и руководитель «Северного Песца» - Пудель Вова.
+                                    *А ты как думаешь, вправду ли Еноты полощат еду?*
+
+                                    ''',
+                                'Wrong_answers': ['Всегда полощат перед едой', 'Полощат только грязную еду'],
+                                'Right_answer': 'Ничего они не полощат, это все клевета',
+                                'Theoretical_part': 'They are true omnivores and are opportunistic in their diet. They will eat fruit, insects, berries, nuts, eggs, small rodents, grapes, corn, crabs, crayfish and anything edible you may have left in the backyard. It was once thought that raccoons washed their food. They do not. Raccoons have a highly sensitive sense of touch which water helps to enhance. Even when water is unavailable, raccoons will use the same motions while they manipulate their food or objects they are interested in. This tactile experience gives the raccoon a better sense of what it will be eating. It is as if they "see" with their hands.Raccoons have bad eyesight and are color blind, but have great hearing and a great sense of smell.',
+                                'Negative_answer': "Ожидаемо, все так думают, но это неправда",
+                                'Positive_answer': "Красавчик, вижу ты смотришь Animal Planet",
+                                'Order': 4,
+                                'Next_step_order': 5})
+        # Step 5
+        self.mongo_client.send({'Problem': '''
+                                   Звери начали постепенно разочаровываться в Петре. Хватит ли времени у Енота, чтобы навести порядок в зоопарке?
+                                   *Сколько Еноты обычно живут?*
+                                    ''',
+                                'Wrong_answers': ['Меньше 5 лет', 'До 10 лет', 'До 15 лет'],
+                                'Right_answer': 'Более 15 лет',
+                                'Theoretical_part': 'They are true omnivores and are opportunistic in their diet. They will eat fruit, insects, berries, nuts, eggs, small rodents, grapes, corn, crabs, crayfish and anything edible you may have left in the backyard. It was once thought that raccoons washed their food. They do not. Raccoons have a highly sensitive sense of touch which water helps to enhance. Even when water is unavailable, raccoons will use the same motions while they manipulate their food or objects they are interested in. This tactile experience gives the raccoon a better sense of what it will be eating. It is as if they "see" with their hands.Raccoons have bad eyesight and are color blind, but have great hearing and a great sense of smell.',
+                                'Negative_answer': "Ты их недооцениваешь, Петр еще успеет простудиться на твоих похоронах",
+                                'Positive_answer': "Красавчик, вижу ты смотришь Animal Planet",
+                                'Order': 5,
                                 })
