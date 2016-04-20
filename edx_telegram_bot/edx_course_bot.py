@@ -77,9 +77,7 @@ class CourseBot(object):
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
             answers = current_step['Wrong_answers'] + [current_step['Right_answer']]
-            print answers
             random.shuffle(answers)
-            print
             keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + answer] for answer in answers]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
