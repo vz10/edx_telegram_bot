@@ -16,7 +16,8 @@ bot_messages = {
     'help_now': "Я уже знаю правильный ответ",
     'not_know': "Нужно почитать немного теории",
     'now_i_can': "Теперь я готов ответить",
-
+    'finish': 'Курс закончился, никого нет дома, приходите позже.',
+    'hi': 'Привет, человек, рад тебя видеть.'
 }
 
 class CourseBot(object):
@@ -81,7 +82,7 @@ class CourseBot(object):
             keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + answer] for answer in answers]
             message = current_step['Problem']
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
-            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') +  bot_messages['now_i_can'].decode('utf-8')]]
+            keyboard = [[Emoji.FLEXED_BICEPS.decode('utf-8') + bot_messages['now_i_can'].decode('utf-8')]]
             message = current_step['Theoretical_part']
             if 'Video_url' in current_step:
                 bot.sendVideo(chat_id=chat_id, video=current_step['Video_url'].encode('utf-8', 'strict'))
@@ -125,7 +126,7 @@ class CourseBot(object):
     def hi(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        bot.sendMessage(chat_id=chat_id, text="Hello, human, I'm glad to see you")
+        bot.sendMessage(chat_id=chat_id, text=bot_messages['hi'].decode('utf-8'))
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD7wEAAmONagABIoEfTRQCUCQC')
 
     def echo(self, bot, update):
@@ -136,7 +137,7 @@ class CourseBot(object):
         message = update.message.text
         if progress.current_step_status == UserCourseProgress.STATUS_END:
             bot.sendMessage(chat_id=chat_id,
-                            text='The course is finished, nobody home, come back later.')
+                            text=bot_messages['finish'].decode('utf-8'))
             return
         if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
             answer = message[1:]
