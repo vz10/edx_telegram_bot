@@ -212,7 +212,6 @@ class RaccoonBot(object):
                     bot.sendMessage(chat_id=chat_id, text=message)
 
     def echo(self, bot, update):
-        print update
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         message = update.message.text
