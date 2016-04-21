@@ -23,8 +23,8 @@ import telegram
 def someone_enrolls(sender, instance, **kwargs):
     bot = telegram.Bot(token=settings.TELEGRAM_BOT.get('token'))
     prev_enrollment = CourseEnrollment.objects.filter(user=instance.user, course_id=instance.course_id).exists()
-    if instance.is_active and not prev_enrollment:
-        telegram_user = EdxTelegramUser.objects.filter(student=instance.user).first()
+    telegram_user = EdxTelegramUser.objects.filter(student=instance.user).first()
+    if instance.is_active and not prev_enrollment and telegram_user:
         course_bot = BotFriendlyCourses.objects.filter(course_key=instance.course_id).first()
         course_title = modulestore().get_course(instance.course_id).display_name_with_default
         if course_bot:
