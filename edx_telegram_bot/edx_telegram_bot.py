@@ -212,6 +212,7 @@ class RaccoonBot(object):
                     bot.sendMessage(chat_id=chat_id, text=message)
 
     def echo(self, bot, update):
+        print update
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         message = update.message.text
@@ -239,13 +240,13 @@ class RaccoonBot(object):
         if message.find(Emoji.YELLOW_HEART.decode('utf-8')) == 0:
             self.predict_answer(bot, update, yes=True)
             text = "Thank you for your answer, it will help me to improve my recommendations in future"
-            sticker = 'AAQEABPN7mEwAASL2MiUKJE3ZUkmAAIC'
+            sticker = 'BQADBAAD-QEAAmONagABI1o6OFspgIIC'
         if message.find(Emoji.PILE_OF_POO.decode('utf-8')) == 0:
             self.predict_answer(bot, update)
-            text = "Thank you for your answer, it will help me to improve my recommendations in future"
-            sticker = 'AAQEABPN7mEwAASL2MiUKJE3ZUkmAAIC'
+            text = "Sorry for that bad recommendation, I'll try to give better advices in future. "
+            sticker = 'BQADBAADAwIAAmONagABc-jLpvC0yP8C'
 
-        # bot.sendSticker(chat_id=chat_id, sticker=sticker)
+        bot.sendSticker(chat_id=chat_id, sticker=sticker)
         bot.sendMessage(chat_id=chat_id, text=text)
 
     def unknown(self, bot, update):
