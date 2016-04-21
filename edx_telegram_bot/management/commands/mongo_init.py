@@ -118,6 +118,6 @@ class Command(BaseCommand):
                                 'Negative_answer': "Ты не можешь серьезно так думать, давай еще раз попробуешь.",
                                 'Positive_answer': "Да, да и еще раз да. Еноты - чемпионы мира по дружелюбию.",
                                 'Order': 7,
-                                'Next_step_order': 6})
+                                })
 
 
