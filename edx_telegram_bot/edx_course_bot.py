@@ -75,7 +75,7 @@ class CourseBot(object):
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         progress = UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)[0]
         progress.current_step_order=0
-        progress.current_step_status=UserCourseProgress.STATUS_START
+        progress.current_step_status=UserCourseProgress.STATUS_TEST
         progress.save()
         bot.sendMessage(chat_id=chat_id,
                         text='Начинаем все сначала.')
