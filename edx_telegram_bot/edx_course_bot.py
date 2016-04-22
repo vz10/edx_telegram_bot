@@ -29,6 +29,7 @@ class CourseBot(object):
 
         self.commands = {
             '/hi': 'Try it if you want to say hi to the Bot',
+            '/restart': 'Restart current course',
             'nothing more...': 'For more talking use keyboard in course '
             # '/courses': 'You can choose what kind of courses you are interesting in',
             # '/all_courses': "You can see all available courses",
@@ -48,6 +49,7 @@ class CourseBot(object):
         self.dispatcher.addTelegramCommandHandler('help', self.help)
         # self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
         self.dispatcher.addTelegramCommandHandler('start', self.start)
+        self.dispatcher.addTelegramCommandHandler('restart', self.restart)
 
         self.dispatcher.addTelegramMessageHandler(self.echo)
 
@@ -64,6 +66,19 @@ class CourseBot(object):
         telegram_id = update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
+        self.show_progress(bot, update)
+
+    @is_telegram_user
+    def restart(self, bot, update):
+        chat_id = update.message.chat_id
+        telegram_id = update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+        progress = UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)[0]
+        progress.current_step_order=0
+        progress.current_step_status=UserCourseProgress.STATUS_START
+        progress.save()
+        bot.sendMessage(chat_id=chat_id,
+                        text='Начинаем все сначала.')
         self.show_progress(bot, update)
 
     def show_progress(self, bot, update):
