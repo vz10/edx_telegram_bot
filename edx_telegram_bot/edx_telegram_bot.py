@@ -34,8 +34,9 @@ def is_telegram_user(f):
         chat_id = update.message.chat_id
         telegram_id = update.message.from_user.id
         if not EdxTelegramUser.objects.filter(telegram_id=telegram_id):
+            current_site = Site.objects.get_current()
             bot.sendMessage(chat_id=chat_id,
-                            text="I don't know you, bro. You'd better go and register you telegram in edX first")
+                            text="I don't know you, bro. You'd better go and register you telegram in edX first. On %s" % current_site)
             return
         return f(*args, **kw)
     return wrapper
@@ -115,7 +116,7 @@ class RaccoonBot(object):
         if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
             bot.sendMessage(chat_id=chat_id,
                             text="It seems like I see you for the first time,"\
-                                 " please answer a few questions, so I'll be know more about you")
+                                    " please answer a few questions, so I'll be know more about you")
             prediction.get_test_courses(telegram_id)
         test_courses = LearningPredictionForUser.objects.get(telegram_user=telegram_user).get_list()
         if len(test_courses) > 0:
@@ -210,6 +211,9 @@ class RaccoonBot(object):
                                     text=course_url,
                                     parse_mode=telegram.ParseMode.MARKDOWN)
                     bot.sendMessage(chat_id=chat_id, text=message)
+
+    def show_enroll_keyboard(self):
+        pass
 
     def echo(self, bot, update):
         chat_id = update.message.chat_id

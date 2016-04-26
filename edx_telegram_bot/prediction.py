@@ -25,8 +25,7 @@ def get_coursed_and_create_matrix():
     map(lambda x: MatrixEdxCoursesId.objects.get_or_create(course_key=x.id, course_index=results.index(x)), results)
 
     courses_stem = [' '.join(stemmer.stemWords(x.split())) for x in all_courses]
-    # TODO remove it when it will be more then one course here
-    courses_stem *= 5
+    courses_stem = 5
     vect = TfidfVectorizer(stop_words=get_stop_words(), lowercase=True, dtype=np.float32)
     matrix = vect.fit_transform(courses_stem)
     new_matrix = TfidMatrixAllCourses.objects.all().first() or TfidMatrixAllCourses()
@@ -96,8 +95,5 @@ def prediction(telegram_id):
     cosine_similarities[list_of_user_courses_indexes] = -1000
 
     related_docs_indices = cosine_similarities.argsort()
-    # TODO uncomment when it will enough courses
-    # little_random = np.random.randint(5,10)
-    # print little_random
-    # return related_docs_indices[-little_random]
-    return 0
+    little_random = np.random.randint(5,10)
+    return related_docs_indices[-little_random]
