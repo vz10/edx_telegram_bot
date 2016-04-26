@@ -25,7 +25,6 @@ def get_coursed_and_create_matrix():
     map(lambda x: MatrixEdxCoursesId.objects.get_or_create(course_key=x.id, course_index=results.index(x)), results)
 
     courses_stem = [' '.join(stemmer.stemWords(x.split())) for x in all_courses]
-    courses_stem = 5
     vect = TfidfVectorizer(stop_words=get_stop_words(), lowercase=True, dtype=np.float32)
     matrix = vect.fit_transform(courses_stem)
     new_matrix = TfidMatrixAllCourses.objects.all().first() or TfidMatrixAllCourses()
