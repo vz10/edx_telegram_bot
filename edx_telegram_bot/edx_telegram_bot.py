@@ -243,7 +243,7 @@ class RaccoonBot(object):
             return
         if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
             course_name = message[1:]
-            self.get_course_description(bot, update, course_name, enroll_keyboard =  True)
+            self.get_course_description(bot, update, course_name)
             return
         if message[0] == Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8'):
             self.learning(bot, update)
