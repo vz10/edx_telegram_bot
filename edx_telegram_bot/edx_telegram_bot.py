@@ -220,13 +220,15 @@ class RaccoonBot(object):
                     current_site = Site.objects.get_current()
                     course_title = modulestore().get_course(course_key).display_name_with_default
                     course_url = '[%s](%scourses/%s/)' % (course_title, current_site, each.id)
-                    if enroll_keyboard:
-                        keyboard = [[Emoji.FACE_WITH_OK_GESTURE.decode('utf-8') + 'I like it and I want to enroll']]
-                        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
                     bot.sendMessage(chat_id=chat_id,
                                     text=course_url,
                                     parse_mode=telegram.ParseMode.MARKDOWN)
-                    bot.sendMessage(chat_id=chat_id, text=message, reply_markup=reply_markup)
+                    if enroll_keyboard:
+                        keyboard = [[Emoji.FACE_WITH_OK_GESTURE.decode('utf-8') + 'I like it and I want to enroll']]
+                        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
+                        bot.sendMessage(chat_id=chat_id, text=message, reply_markup=reply_markup)
+                    else:
+                        bot.sendMessage(chat_id=chat_id, text=message)
                 break
 
     def echo(self, bot, update):
@@ -237,11 +239,11 @@ class RaccoonBot(object):
         sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
         if message[0] ==  Emoji.SMIRKING_FACE.decode('utf-8'):
             course_name = message[1:]
-            self.get_course_description(bot, update, course_name, enroll_keyboard =  True)
+            self.get_course_description(bot, update, course_name)
             return
         if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
             course_name = message[1:]
-            self.get_course_description(bot, update, course_name)
+            self.get_course_description(bot, update, course_name, enroll_keyboard =  True)
             return
         if message[0] == Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8'):
             self.learning(bot, update)
