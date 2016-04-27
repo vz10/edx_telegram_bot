@@ -235,7 +235,7 @@ class RaccoonBot(object):
         message = update.message.text
         text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
         sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
-        if message[0] ==  Emoji.SMIRKING_FACE.dccode('utf-8'):
+        if message[0] ==  Emoji.SMIRKING_FACE.decode('utf-8'):
             course_name = message[1:]
             self.get_course_description(bot, update, course_name, enroll_keyboard =  True)
             return
