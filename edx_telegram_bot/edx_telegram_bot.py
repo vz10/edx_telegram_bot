@@ -268,6 +268,7 @@ class RaccoonBot(object):
             for each in results:
                 if each.display_name_with_default == course_name:
                     enroll_user(bot, update, each.id)
+                    print each.id
                 break
             return
         if message[0] == Emoji.YELLOW_HEART.decode('utf-8'):
