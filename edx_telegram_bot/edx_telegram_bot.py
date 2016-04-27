@@ -156,6 +156,9 @@ class RaccoonBot(object):
                         reply_markup=reply_markup)
 
     def learning(self, bot, update, is_positive=True):
+        """
+        Update user TfIdf vector depending on user reaction for recommendations
+        """
         chat_id = update.message.chat_id
         telegram_id =  update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
@@ -183,12 +186,19 @@ class RaccoonBot(object):
         PredictionForUser.objects.get(telegram_user=telegram_user).delete()
 
     def hi(self, bot, update):
+        """
+        Answer on hi command of user
+        """
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendMessage(chat_id=chat_id, text="Hello, human, I'm glad to see you")
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD7wEAAmONagABIoEfTRQCUCQC')
 
-    def get_course_description(self, bot, update, course_name = None, course_key = None):
+    def get_course_description(self, bot, update, course_name = None,
+                                                course_key = None, enroll_keyboard=False):
+        """
+        Get description of particular courses by Title or by course_id
+        """
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         if course_key:
@@ -210,13 +220,14 @@ class RaccoonBot(object):
                     current_site = Site.objects.get_current()
                     course_title = modulestore().get_course(course_key).display_name_with_default
                     course_url = '[%s](%scourses/%s/)' % (course_title, current_site, each.id)
+                    if enroll_keyboard:
+                        keyboard = [[Emoji.FACE_WITH_OK_GESTURE.decode('utf-8') + 'I like it and I want to enroll']]
+                        reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
                     bot.sendMessage(chat_id=chat_id,
                                     text=course_url,
                                     parse_mode=telegram.ParseMode.MARKDOWN)
-                    bot.sendMessage(chat_id=chat_id, text=message)
-
-    def show_enroll_keyboard(self):
-        pass
+                    bot.sendMessage(chat_id=chat_id, text=message, reply_markup=reply_markup)
+                break
 
     def echo(self, bot, update):
         chat_id = update.message.chat_id
@@ -224,30 +235,40 @@ class RaccoonBot(object):
         message = update.message.text
         text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
         sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
-        if message.find(Emoji.THUMBS_UP_SIGN.decode('utf-8')) == 0:
+        if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
             course_name = message[1:]
             self.get_course_description(bot, update, course_name)
             return
-        if message.find(Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8')) == 0:
+        if message[0] == Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8'):
             self.learning(bot, update)
             return
-        if message.find(Emoji.ORANGE_BOOK.decode('utf-8')) == 0:
+        if message[0] == Emoji.ORANGE_BOOK.decode('utf-8'):
             self.learning(bot, update, is_positive=False)
             return
-        if message.find(Emoji.T_SHIRT.decode('utf-8')) == 0:
+        if message[0] == Emoji.T_SHIRT.decode('utf-8'):
             self.my_courses(bot, update)
             return
-        if message.find(Emoji.FATHER_CHRISTMAS.decode('utf-8')) == 0:
+        if message[0] == Emoji.FATHER_CHRISTMAS.decode('utf-8'):
             self.courses(bot, update)
             return
-        if message.find(Emoji.FLEXED_BICEPS.decode('utf-8')) == 0:
+        if message[0] == Emoji.FLEXED_BICEPS.decode('utf-8'):
             self.predict_answer(bot, update, enroll=True, yes=True)
             return
-        if message.find(Emoji.YELLOW_HEART.decode('utf-8')) == 0:
+        if message[0] == Emoji.FACE_WITH_OK_GESTURE.decode('utf-8'):
+            course_name = message[1:]
+            results = modulestore().get_courses()
+            results = [course for course in results if
+                           course.scope_ids.block_type == 'course']
+            for each in results:
+                if each.display_name_with_default == course_name:
+                    enroll_user(bot, update, each.id)
+                break
+            return
+        if message[0] == Emoji.YELLOW_HEART.decode('utf-8'):
             self.predict_answer(bot, update, yes=True)
             text = "Thank you for your answer, it will help me to improve my recommendations in future"
             sticker = 'BQADBAAD-QEAAmONagABI1o6OFspgIIC'
-        if message.find(Emoji.PILE_OF_POO.decode('utf-8')) == 0:
+        if message[0] == Emoji.PILE_OF_POO.decode('utf-8'):
             self.predict_answer(bot, update)
             text = "Sorry for that bad recommendation, I'll try to give better advices in future. "
             sticker = 'BQADBAADAwIAAmONagABc-jLpvC0yP8C'
@@ -256,6 +277,9 @@ class RaccoonBot(object):
         bot.sendMessage(chat_id=chat_id, text=text)
 
     def unknown(self, bot, update):
+        """
+        Handle non dispathed Telegram commands
+        """
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         time.sleep(1)
@@ -265,6 +289,9 @@ class RaccoonBot(object):
                         text=message)
 
     def die(self, bot, update):
+        """
+        Dev method to kill bot
+        """
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendMessage(chat_id=chat_id, text='AAAAAAAA!!!! You kill me, motherfucker')
@@ -275,6 +302,9 @@ class RaccoonBot(object):
         print 'Update %s caused error %s' % (update, error)
 
     def courses(self, bot, update):
+        """
+        Get list of all available courses in edX database
+        """
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         results = modulestore().get_courses()
