@@ -128,7 +128,7 @@ class LearningPredictionForUser(models.Model):
         EdxTelegramUser,
         on_delete=models.CASCADE,
         primary_key=True, )
-    prediction_list = models.CharField(max_length=30)
+    prediction_list = models.TextField(blank=True)
 
     def get_list(self):
         return json.loads(self.prediction_list)
