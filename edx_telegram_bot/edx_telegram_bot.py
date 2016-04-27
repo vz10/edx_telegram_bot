@@ -235,6 +235,10 @@ class RaccoonBot(object):
         message = update.message.text
         text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
         sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
+        if message[0] ==  Emoji.SMIRKING_FACE.dccode('utf-8'):
+            course_name = message[1:]
+            self.get_course_description(bot, update, course_name, enroll_keyboard =  True)
+            return
         if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
             course_name = message[1:]
             self.get_course_description(bot, update, course_name)
@@ -337,7 +341,7 @@ class RaccoonBot(object):
         else:
             bot.sendSticker(chat_id=chat_id, sticker='BQADBAADCwIAAmONagABF1QQKl9NWncC')
             msg = "Just have a look what I've found for you"
-            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') +
+            keyboard = [[Emoji.SMIRKING_FACE.decode('utf-8') +
                          modulestore().get_course(course.course_id).display_name_with_default] for course in results]
             reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
             bot.sendMessage(chat_id=chat_id, text=msg, reply_markup=reply_markup)
