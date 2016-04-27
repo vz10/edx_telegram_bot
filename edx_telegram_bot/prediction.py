@@ -13,6 +13,7 @@ from student.models import CourseEnrollment
 from models import (TfidMatrixAllCourses, MatrixEdxCoursesId,
                     LearningPredictionForUser, EdxTelegramUser, TfidUserVector)
 
+COUNT_OF_TEST_COURSES = 5
 
 def get_coursed_and_create_matrix():
     results = modulestore().get_courses()
@@ -51,7 +52,8 @@ def get_test_courses(telegram_id):
     output = []
     cosine_similarities = linear_kernel(matrix_of_courses[np.random.randint(0, matrix_of_courses.shape[0]-1)],
                                         matrix_of_courses).flatten()
-    list_of_indexes = np.linspace(cosine_similarities.min(), cosine_similarities.max(), num=15)
+    list_of_indexes = np.linspace(cosine_similarities.min(), cosine_similarities.max(),
+                                                    num=COUNT_OF_TEST_COURSES)
     for each in list_of_indexes:
         test_course = find_nearest(cosine_similarities, each)
         if not test_course in output:
