@@ -98,8 +98,7 @@ class RaccoonBot(object):
                 if not BotFriendlyCourses.objects.filter(course_key=course_key).exists():
                     bot.sendMessage(chat_id=chat_id,
                                     text="You've been enrolled")
-                    course_title = modulestore().get_course(course_key).display_name_with_default
-                    self.get_course_description(bot, update, course_title)
+                    self.get_course_description(bot, update, course_name=None, course_key=course_key)
             except AlreadyEnrolledError:
                 bot.sendMessage(chat_id=chat_id,
                                 text="It seems like you've been already enrolled to that course")
@@ -189,12 +188,16 @@ class RaccoonBot(object):
         bot.sendMessage(chat_id=chat_id, text="Hello, human, I'm glad to see you")
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD7wEAAmONagABIoEfTRQCUCQC')
 
-    def get_course_description(self, bot, update, course_name):
+    def get_course_description(self, bot, update, course_name = None, course_key = None):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        results = modulestore().get_courses()
-        results = [course for course in results if
-                   course.scope_ids.block_type == 'course']
+        if course_key:
+            results = [modulestore().get_course(course_key)]
+            course_name =  modulestore().get_course(course_key).display_name_with_default
+        else:
+            results = modulestore().get_courses()
+            results = [course for course in results if
+                       course.scope_ids.block_type == 'course']
         for each in results:
             if each.display_name_with_default == course_name:
                 message = truncate_course_info(CourseDetails.fetch_about_attribute(each.id, 'overview'))
