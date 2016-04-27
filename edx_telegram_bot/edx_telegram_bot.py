@@ -267,7 +267,7 @@ class RaccoonBot(object):
                            course.scope_ids.block_type == 'course']
             for each in results:
                 if each.display_name_with_default == course_name:
-                    enroll_user(bot, update, each.id)
+                    self.enroll_user(bot, update, each.id)
                     print each.id
                 break
             return
