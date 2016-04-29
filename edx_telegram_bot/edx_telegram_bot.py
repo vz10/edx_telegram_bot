@@ -10,6 +10,7 @@ from django.conf import settings
 from openedx.core.djangoapps.models.course_details import CourseDetails
 from opaque_keys.edx.keys import CourseKey
 from xmodule.modulestore.django import modulestore
+from opaque_keys.edx.locator import CourseLocator
 from course_modes.models import CourseMode
 from student.models import CourseEnrollment, AlreadyEnrolledError
 
@@ -67,8 +68,8 @@ class RaccoonBot(object):
 
         self.dispatcher.addTelegramCommandHandler('hi', self.hi)
         # self.dispatcher.addTelegramCommandHandler('die', self.die)
-        self.dispatcher.addTelegramCommandHandler('help', self.help)
         # self.dispatcher.addTelegramCommandHandler('reminder', self.reminder)
+        self.dispatcher.addTelegramCommandHandler('help', self.help)
         self.dispatcher.addTelegramCommandHandler('courses', self.courses_menu)
         self.dispatcher.addTelegramCommandHandler('all_courses', self.courses)
         self.dispatcher.addTelegramCommandHandler('my_courses', self.my_courses)
@@ -88,7 +89,10 @@ class RaccoonBot(object):
         telegram_id = update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         user = telegram_user.student
-        course_key = CourseKey.from_string(course_id)
+        if isinstance(course_id, CourseLocator):
+            course_key = course_id
+        else:
+            course_key = CourseKey.from_string(course_id)
         if CourseMode.can_auto_enroll(course_key):
             available_modes = CourseMode.modes_for_course_dict(course_key)
             try:
@@ -224,7 +228,9 @@ class RaccoonBot(object):
                                     text=course_url,
                                     parse_mode=telegram.ParseMode.MARKDOWN)
                     if enroll_keyboard:
-                        keyboard = [[Emoji.FACE_WITH_OK_GESTURE.decode('utf-8') + 'I like it and I want to enroll']]
+                        keyboard = [[Emoji.FACE_WITH_OK_GESTURE.decode('utf-8')+
+                                             'I want to enroll '+
+                                             course_title ]]
                         reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
                         bot.sendMessage(chat_id=chat_id, text=message, reply_markup=reply_markup)
                     else:
@@ -243,7 +249,7 @@ class RaccoonBot(object):
             return
         if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
             course_name = message[1:]
-            self.get_course_description(bot, update, course_name)
+            self.get_course_description(bot, update, course_name, enroll_keyboard=True)
             return
         if message[0] == Emoji.KISSING_FACE_WITH_CLOSED_EYES.decode('utf-8'):
             self.learning(bot, update)
@@ -261,15 +267,13 @@ class RaccoonBot(object):
             self.predict_answer(bot, update, enroll=True, yes=True)
             return
         if message[0] == Emoji.FACE_WITH_OK_GESTURE.decode('utf-8'):
-            course_name = message[1:]
+            course_name = message[18:]
             results = modulestore().get_courses()
             results = [course for course in results if
-                           course.scope_ids.block_type == 'course']
-            for each in results:
-                if each.display_name_with_default == course_name:
-                    self.enroll_user(bot, update, each.id)
-                    print each.id
-                break
+                            course.scope_ids.block_type == 'course' and
+                            course.display_name_with_default == course_name]
+            if len(results) > 0:
+                self.enroll_user(bot, update, results[0].id)
             return
         if message[0] == Emoji.YELLOW_HEART.decode('utf-8'):
             self.predict_answer(bot, update, yes=True)
