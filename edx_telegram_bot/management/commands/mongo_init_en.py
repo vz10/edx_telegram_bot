@@ -155,7 +155,8 @@ All in all, the animals seem to be preparing for new elections and searching for
                                             ''',
                                 'Wrong_answers': [],
                                 'Theoretical_part': "Just try to guess, I belive in you.",
-                                'Right_answer': 'More than 30 raccoons work in two hives (Kiev and Kharkiv offices). They will be really happy if you decide to join them tomorrow ;)',
+                                'Right_answer': 'More than 30 raccoons work in two hives (Kiev and Kharkiv offices). ;)',
+                                'Negative_answer': "",
                                 'Positive_answer': """
 Great job! I hope, you succeeded in completing the course, learn something new and laugh a lot. We will be in touch and update our course with new interesting facts about raccoon lives!
 Go Raccoons!
