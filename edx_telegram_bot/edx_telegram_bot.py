@@ -365,6 +365,7 @@ class RaccoonBot(object):
                     else:
                         bot.sendMessage(chat_id=chat_id, text=message)
                 break
+        bot.sendMessage(chat_id=chat_id, reply_markup=ReplyKeyboardHide())
 
     def echo(self, bot, update):
         chat_id = update.message.chat_id
@@ -378,7 +379,7 @@ class RaccoonBot(object):
             self.get_course_description(bot, chat_id, course_name, enroll_keyboard=True)
             return
         bot.sendSticker(chat_id=chat_id, sticker=sticker)
-        bot.sendSticker(chat_id=chat_id, text=text,)
+        bot.sendMessage(chat_id=chat_id, text=text)
         bot.sendMessage(chat_id=chat_id, reply_markup=reply_markup)
 
     def unknown(self, bot, update):
