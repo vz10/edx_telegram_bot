@@ -9,7 +9,7 @@ from ...models import BotFriendlyCourses
 
 class Command(NoArgsCommand):
     def handle(self, **options):
-        # RaccoonBot()
+        RaccoonBot()
         map(lambda each: CourseBot(token=each.token,
                                    collection=each.course_key),
             BotFriendlyCourses.objects.all())
