@@ -45,6 +45,7 @@ class RaccoonBot(object):
             '/all_courses': "You can see all available courses",
             '/my_courses': "You can see only your courses",
             '/recommendations': "You can ask bot to recommend you some courses which will be interesting for you",
+            '/location': "Find the nearest to you edX-telegram user",
             # '/reminder': "In 30 seconds bot will remind you that you are idiot",
             # '/die': "Don't even think about it, motherfucker"
         }
@@ -130,7 +131,7 @@ class RaccoonBot(object):
                              for each in last_users_location if each]
         distance_to_users.sort(key=lambda x: x[1])
         if distance_to_users:
-            message = "The closest edX user is just %s meters from you their name is @%s, chat to them if you want ;)" %\
+            message = "The closest edX user is just %.2f meters from you their name is @%s, chat to them if you want ;)" %\
                       (distance_to_users[0][1], distance_to_users[0][0].telegram_nick)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
