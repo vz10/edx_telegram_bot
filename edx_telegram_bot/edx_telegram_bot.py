@@ -127,7 +127,7 @@ class RaccoonBot(object):
         last_users_location = [UserLocation.objects.filter(telegram_user=each).last()
                                for each in EdxTelegramUser.objects.all().exclude(id=telegram_user.id)]
         distance_to_users = [(each.telegram_user, vincenty(your_location, (each.latitude, each.longitude)).meters)
-                             for each in last_users_location]
+                             for each in last_users_location if each]
         distance_to_users.sort(key=lambda x: x[1])
         if distance_to_users:
             message = "The closest edX user is just %s meters from you their name is @%s, chat to them if you want ;)" %\
