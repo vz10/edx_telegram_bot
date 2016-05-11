@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from django.db import connection
+from django.contrib.sites.models import Site
 
 from models import EdxTelegramUser
+
 
 def is_telegram_user(f):
     def wrapper(*args, **kw):

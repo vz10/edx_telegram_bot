@@ -58,7 +58,6 @@ class CourseBot(object):
         # self.dispatcher.addHandler(CommandHandler('die', self.die))
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
 
-
         self.dispatcher.addErrorHandler(self.error)
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
 

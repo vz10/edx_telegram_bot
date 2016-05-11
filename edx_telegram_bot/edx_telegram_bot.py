@@ -79,7 +79,7 @@ class RaccoonBot(object):
                                       request_location=True)
         reply_markup = ReplyKeyboardMarkup(keyboard=[[get_location]], one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
-                        text="Something goes wrong",
+                        text="Ok I'm waiting for your checkin",
                         reply_markup=reply_markup)
 
     @close_connection
@@ -113,7 +113,6 @@ class RaccoonBot(object):
 
     @is_telegram_user
     def get_location(self, bot, update):
-        print update
         latitude = update.message.location.latitude
         longitude = update.message.location.longitude
         chat_id = update.message.chat_id
@@ -125,7 +124,6 @@ class RaccoonBot(object):
         bot.sendMessage(chat_id=chat_id,
                         text='Thank you, bro',
                         reply_markup=ReplyKeyboardHide())
-
 
     @is_telegram_user
     def recommend_command(self, bot, update):
@@ -380,7 +378,8 @@ class RaccoonBot(object):
             self.get_course_description(bot, chat_id, course_name, enroll_keyboard=True)
             return
         bot.sendSticker(chat_id=chat_id, sticker=sticker)
-        bot.sendMessage(chat_id=chat_id, text=text, reply_markup=reply_markup)
+        bot.sendSticker(chat_id=chat_id, text=text,)
+        bot.sendMessage(chat_id=chat_id, reply_markup=reply_markup)
 
     def unknown(self, bot, update):
         """
