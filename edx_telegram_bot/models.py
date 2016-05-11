@@ -35,6 +35,7 @@ def someone_enrolls(sender, instance, **kwargs):
                             text=message,
                             parse_mode=telegram.ParseMode.MARKDOWN)
 
+
 class EdxTelegramUser(models.Model):
     """
     Relations between edx telegram users
@@ -74,6 +75,16 @@ class EdxTelegramUser(models.Model):
 
 
 post_save.connect(EdxTelegramUser.post_save, sender=EdxTelegramUser, dispatch_uid='add_hash')
+
+
+class UserLocation(models.Model):
+    telegram_user = models.ForeignKey(EdxTelegramUser)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __unicode__(self):
+        return self.telegram_user.student.username + ' ' + str(self.timestamp)
 
 
 class TfidMatrixAllCourses(models.Model):
@@ -165,3 +176,10 @@ class BotFriendlyCourses(models.Model):
     """
     course_key = models.CharField(max_length=100, db_index=True)
     bot_name = models.CharField(max_length=64, blank=True, null=True)
+    token = models.CharField(max_length=50, blank=True, null=True)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        bot = telegram.Bot(token=self.token)
+        self.bot_name = bot.getMe().username
+        super(BotFriendlyCourses, self).save()

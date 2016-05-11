@@ -1,9 +1,9 @@
-python-telegram-bot
+python-telegram-bot==4.0.3
 django-picklefield
 requests
 snowballstemmer
 PyStemmer
-sklearn
 notebook
 numpy
 scipy
+sklearn

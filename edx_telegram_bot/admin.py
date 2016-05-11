@@ -7,7 +7,7 @@ from opaque_keys.edx.locator import CourseLocator
 
 from models import (EdxTelegramUser, TfidMatrixAllCourses, MatrixEdxCoursesId,
                     TfidUserVector, LearningPredictionForUser, PredictionForUser,
-                    UserCourseProgress, BotFriendlyCourses)
+                    UserCourseProgress, BotFriendlyCourses, UserLocation)
 from ratelimitbackend import admin
 
 
@@ -31,7 +31,7 @@ class LearningPredictionForUserAdmin(admin.ModelAdmin):
 class BotFriendlyCoursesAdminForm(forms.ModelForm):
     class Meta:
         model = BotFriendlyCourses
-        fields = "__all__"
+        fields = ('token', 'course_key')
 
     def __init__(self, *args, **kwargs):
         super(BotFriendlyCoursesAdminForm, self).__init__(*args, **kwargs)
@@ -55,3 +55,4 @@ admin.site.register(TfidUserVector)
 admin.site.register(PredictionForUser)
 admin.site.register(UserCourseProgress)
 admin.site.register(BotFriendlyCourses, BotFriendlyCoursesAdmin)
+admin.site.register(UserLocation)
