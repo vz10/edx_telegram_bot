@@ -6,6 +6,7 @@ import telegram
 from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, ChatAction,
                       Emoji, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardHide)
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, CallbackQueryHandler
+from geopy.distance import vincenty
 
 from django.contrib.sites.models import Site
 from django.conf import settings
@@ -58,7 +59,6 @@ class RaccoonBot(object):
         # self.dispatcher.addHandler(CommandHandler('die', self.die))
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
         self.dispatcher.addHandler(CommandHandler('help', self.help_command))
-        self.dispatcher.addHandler(CommandHandler('all_courses', self.courses_command))
         self.dispatcher.addHandler(CommandHandler('my_courses', self.my_courses_command))
         self.dispatcher.addHandler(CommandHandler('start', self.send_hash_command))
         self.dispatcher.addHandler(CommandHandler('recommendations', self.recommend_command))
@@ -75,7 +75,7 @@ class RaccoonBot(object):
 
     def location(self, bot, update):
         chat_id = update.message.chat_id
-        get_location = KeyboardButton(text='tell mew where you are',
+        get_location = KeyboardButton(text='Tell where you are',
                                       request_location=True)
         reply_markup = ReplyKeyboardMarkup(keyboard=[[get_location]], one_time_keyboard=True)
         bot.sendMessage(chat_id=chat_id,
@@ -118,11 +118,22 @@ class RaccoonBot(object):
         chat_id = update.message.chat_id
         telegram_id = update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         UserLocation.objects.create(telegram_user=telegram_user,
                                     longitude=longitude,
                                     latitude=latitude)
+        message = "There is no edX users nearby"
+        your_location = (latitude, longitude)
+        last_users_location = [UserLocation.objects.filter(telegram_user=each).last()
+                               for each in EdxTelegramUser.objects.all().exclude(id=telegram_user.id)]
+        distance_to_users = [(each.telegram_user, vincenty(your_location, (each.latitude, each.longitude)).meters)
+                             for each in last_users_location]
+        distance_to_users.sort(key=lambda x: x[1])
+        if distance_to_users:
+            message = "The closest edX user is just %s meters from you their name is @%s, chat to them if you want ;)" %\
+                      (distance_to_users[0][1], distance_to_users[0][0].telegram_nick)
         bot.sendMessage(chat_id=chat_id,
-                        text='Thank you, bro',
+                        text=message,
                         reply_markup=ReplyKeyboardHide())
 
     @is_telegram_user
@@ -169,9 +180,11 @@ class RaccoonBot(object):
     def send_hash_command(self, bot, update):
         chat_id = update.message.chat_id
         telegram_id = update.message.from_user.id
+        nickname = update.message.from_user.username
         user_hash = update.message.text[7:]
         try:
             edx_telegram_user = EdxTelegramUser.objects.get(hash=user_hash)
+            edx_telegram_user.telegram_nick = nickname
             edx_telegram_user.telegram_id = telegram_id
             edx_telegram_user.status = EdxTelegramUser.STATUS_ACTIVE
             edx_telegram_user.save()

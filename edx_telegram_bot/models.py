@@ -51,6 +51,7 @@ class EdxTelegramUser(models.Model):
     student = models.ForeignKey(User, db_index=True)
     hash = models.CharField(max_length=38, blank=True, null=True)
     telegram_id = models.CharField(max_length=10, blank=True, null=True)
+    telegram_nick = models.CharField(max_length=50, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, db_index=True)
     modified = models.DateTimeField(auto_now=True, db_index=True)
     status = models.CharField(max_length=6, choices=STATUSES, default=STATUS_NEW)

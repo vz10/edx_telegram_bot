@@ -7,3 +7,4 @@ notebook
 numpy
 scipy
 sklearn
+geopy==1.11.0
