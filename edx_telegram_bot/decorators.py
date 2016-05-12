@@ -18,11 +18,4 @@ def is_telegram_user(f):
             return
         return f(*args, **kw)
     return wrapper
-
-
-def close_connection(f):
-    def wrapper(*args, **kwargs):
-        retval = f(*args, **kwargs)
-        connection.close()
-        return retval
-    return wrapper
+    

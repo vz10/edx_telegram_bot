@@ -22,7 +22,7 @@ import prediction
 from models import (MatrixEdxCoursesId, TfidMatrixAllCourses, UserLocation,
                     EdxTelegramUser, TfidUserVector, LearningPredictionForUser,
                     PredictionForUser, BotFriendlyCourses)
-from decorators import is_telegram_user, close_connection
+from decorators import is_telegram_user
 
 
 def truncate_course_info(course_info):
@@ -73,7 +73,8 @@ class RaccoonBot(object):
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
 
         self.queue = self.updater.start_polling()
-
+    
+    @is_telegram_user
     def location(self, bot, update):
         chat_id = update.message.chat_id
         get_location = KeyboardButton(text='Tell where you are',
@@ -83,7 +84,6 @@ class RaccoonBot(object):
                         text="Ok I'm waiting for your checkin",
                         reply_markup=reply_markup)
 
-    @close_connection
     def enroll_user(self, bot, chat_id, telegram_user, course_id, show_description=True):
         user = telegram_user.student
         if isinstance(course_id, CourseLocator):
@@ -111,8 +111,8 @@ class RaccoonBot(object):
                 print e
                 bot.sendMessage(chat_id=chat_id,
                                 text="Something goes wrong")
-
-    @is_telegram_user
+                            
+    @is_telegram_user                            
     def get_location(self, bot, update):
         latitude = update.message.location.latitude
         longitude = update.message.location.longitude
@@ -131,7 +131,7 @@ class RaccoonBot(object):
                              for each in last_users_location if each]
         distance_to_users.sort(key=lambda x: x[1])
         if distance_to_users:
-            message = "The closest edX user is just %.2f meters from you their name is @%s, chat to them if you want ;)" %\
+            message = "The closest edX user is just %.2f meters from you, their name are @%s, chat to them if you want ;)" %\
                       (distance_to_users[0][1], distance_to_users[0][0].telegram_nick)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
@@ -144,7 +144,6 @@ class RaccoonBot(object):
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         self.recommend(bot, chat_id, telegram_user)
 
-    @close_connection
     @is_telegram_user
     def my_courses_command(self, bot, update):
         chat_id = update.message.chat_id
@@ -196,7 +195,6 @@ class RaccoonBot(object):
             else:
                 bot.sendMessage(chat_id=chat_id, text="Auth token doesn't correct")
 
-    @close_connection
     def recommend(self, bot, chat_id, telegram_user):
         telegram_id = telegram_user.telegram_id
         if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
@@ -326,7 +324,6 @@ class RaccoonBot(object):
         bot.sendMessage(chat_id=chat_id, text=text)
 
     def inline_keyboard(self, bot, update):
-        print update
         answer = json.loads(update.callback_query.data)
         telegram_id = update.callback_query.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)

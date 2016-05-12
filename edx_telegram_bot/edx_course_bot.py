@@ -8,7 +8,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Regex
 from bot_mongo import BotMongo
 
 from models import (EdxTelegramUser, UserCourseProgress)
-from decorators import is_telegram_user, close_connection
+from decorators import is_telegram_user
 
 
 
@@ -78,7 +78,6 @@ class CourseBot(object):
         for (command, description) in self.commands.items():
             bot.sendMessage(chat_id=chat_id, text=command + ' - ' + description)
 
-    @close_connection
     @is_telegram_user
     def start(self, bot, update):
         chat_id = update.message.chat_id
@@ -87,7 +86,6 @@ class CourseBot(object):
         UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
         self.show_progress(bot, chat_id, telegram_user)
 
-    @close_connection
     @is_telegram_user
     def restart(self, bot, update):
         chat_id = update.message.chat_id
@@ -101,21 +99,18 @@ class CourseBot(object):
                         text="Let's start from scratch")
         self.show_progress(bot, chat_id, telegram_user)
 
-    @close_connection
     def not_know(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         progress.current_step_status = UserCourseProgress.STATUS_INFO
         progress.save()
         self.show_progress(bot, chat_id, telegram_user)
 
-    @close_connection
     def ready(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         progress.current_step_status = UserCourseProgress.STATUS_TEST
         progress.save()
         self.show_progress(bot, chat_id, telegram_user)
 
-    @close_connection
     def right(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
@@ -132,7 +127,6 @@ class CourseBot(object):
             return
         self.show_progress(bot, chat_id, telegram_user)
 
-    @close_connection
     def wrong(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
@@ -155,7 +149,6 @@ class CourseBot(object):
         bot.editMessageText(chat_id=chat_id, message_id=message_id, text=text, parse_mode=telegram.ParseMode.MARKDOWN)
         getattr(self, answer)(bot, chat_id, telegram_user)
 
-    @close_connection
     def show_progress(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.mongo_client.find_one({'Order': progress.current_step_order})
@@ -195,7 +188,6 @@ class CourseBot(object):
         bot.sendMessage(chat_id=chat_id, text=bot_messages['hi'])
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD7wEAAmONagABIoEfTRQCUCQC')
 
-    @close_connection
     def echo(self, bot, update):
         chat_id = update.message.chat_id
         telegram_id = update.message.from_user.id
