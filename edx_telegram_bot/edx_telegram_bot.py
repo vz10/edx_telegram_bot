@@ -3,6 +3,7 @@ import re
 import time
 import json
 import telegram
+import random
 from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, ChatAction,
                       Emoji, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardHide)
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, CallbackQueryHandler
@@ -64,7 +65,8 @@ class RaccoonBot(object):
         self.dispatcher.addHandler(CommandHandler('start', self.send_hash_command))
         self.dispatcher.addHandler(CommandHandler('recommendations', self.recommend_command))
         self.dispatcher.addHandler(CommandHandler('location', self.location))
-
+        self.dispatcher.addHandler(CommandHandler('near_courses', self.near_courses_command))
+        
         self.dispatcher.addHandler(MessageHandler([Filters.text], self.echo))
         self.dispatcher.addHandler(MessageHandler([Filters.location], self.get_location))
         self.dispatcher.addHandler(CallbackQueryHandler(self.inline_keyboard))
@@ -123,6 +125,7 @@ class RaccoonBot(object):
         UserLocation.objects.create(telegram_user=telegram_user,
                                     longitude=longitude,
                                     latitude=latitude)
+        user_courses = CourseEnrollment.enrollments_for_user(telegram_user.student)
         message = "There is no edX users nearby"
         your_location = (latitude, longitude)
         last_users_location = [UserLocation.objects.filter(telegram_user=each).last()
@@ -136,6 +139,37 @@ class RaccoonBot(object):
         bot.sendMessage(chat_id=chat_id,
                         text=message,
                         reply_markup=ReplyKeyboardHide())
+                        
+    @is_telegram_user                            
+    def near_courses_command(self, bot, update):
+        chat_id = update.message.chat_id
+        telegram_id = update.message.from_user.id
+        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+        last_location = UserLocation.objects.filter(telegram_user=telegram_user).latest('timestamp')
+        user_enrollments = CourseEnrollment.enrollments_for_user(telegram_user.student)
+        user_courses = [each.course_id for each in user_enrollments]
+        if user_courses and last_location:
+            all_students_in_course = CourseEnrollment.objects.filter(course_id__in=user_courses)\
+                                                             .exclude(user=telegram_user.student)\
+                                                             .values_list('user', flat=True)
+            telegram_users_in_courses = EdxTelegramUser.objects.filter(student__in=all_students_in_course)
+            users_with_location = [UserLocation.objects.filter(telegram_user=each).latest('timestamp')
+                                   for each in telegram_users_in_courses]
+            users_with_same_city = [each.telegram_user.telegram_nick
+                                   for each in users_with_location if each.city == last_location.city]
+            random.shuffle(users_with_same_city)
+            message = "There are no users in your city with the same enrollments :("
+            if len(users_with_same_city) > 5:
+                random_users = random.randint(3, 5)
+                message = "There are %d users with the same enrollments in your city, here are some of them (%s)" %\
+                          (len(users_with_same_city),
+                           ', '.join(map(lambda x: '@'+x, users_with_same_city[:random_users])))
+            elif len(users_with_same_city) > 0:
+                message = "There are user(s) with the same enrollments in your city %s" % \
+                          (', '.join(map(lambda x: '@'+x, users_with_same_city)))
+            bot.sendMessage(chat_id=chat_id,
+                            text=message)
 
     @is_telegram_user
     def recommend_command(self, bot, update):
@@ -182,6 +216,9 @@ class RaccoonBot(object):
         telegram_id = update.message.from_user.id
         nickname = update.message.from_user.username
         user_hash = update.message.text[7:]
+        if user_hash and EdxTelegramUser.objects.filter(telegram_id=telegram_id).exists():
+            bot.sendMessage(chat_id=chat_id, text="This telegram ID has been already registered")
+            return
         try:
             edx_telegram_user = EdxTelegramUser.objects.get(hash=user_hash)
             edx_telegram_user.telegram_nick = nickname

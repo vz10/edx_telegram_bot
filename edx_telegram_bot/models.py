@@ -1,5 +1,6 @@
 import hashlib
 import json
+from geopy.geocoders import Nominatim
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -82,7 +83,18 @@ class UserLocation(models.Model):
     telegram_user = models.ForeignKey(EdxTelegramUser)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    city = models.CharField(max_length=30, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if not self.city:
+            geolocator = Nominatim()
+            location = geolocator.reverse([self.latitude, self.longitude,],
+                                          language='en',
+                                          timeout=10)
+            self.city = location.raw['address']['city']
+        super(UserLocation, self).save()
 
     def __unicode__(self):
         return self.telegram_user.student.username + ' ' + str(self.timestamp)
@@ -168,7 +180,10 @@ class UserCourseProgress(models.Model):
     telegram_user = models.ForeignKey(EdxTelegramUser)
     course_key = models.CharField(max_length=100)
     current_step_order = models.IntegerField(default=0)
-    current_step_status = models.CharField(max_length=6, choices=STATUSES, default=STATUS_TEST)
+    grade_for_step = models.FloatField(default=0)
+    block_in_status = models.IntegerField(default=0)
+    current_step_status = models.CharField(max_length=6, choices=STATUSES, default=STATUS_START)
+    xblock_key = models.CharField(max_length=100, blank=True, null=True)
 
 
 class BotFriendlyCourses(models.Model):
