@@ -1,4 +1,5 @@
 import json
+import re
 from bson.objectid import ObjectId
 
 from django.views.generic import TemplateView
@@ -8,7 +9,6 @@ from django.http import HttpResponse
 
 from xmodule.modulestore.django import modulestore
 from bot_mongo import BotMongo
-
 
 @login_required
 def courses_list(request):

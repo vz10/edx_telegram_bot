@@ -110,9 +110,9 @@ class CourseBot(object):
     def get_block_title(container):
         return container.display_name
 
-    def get_theory_for_block(self, container, theory_block_number):
+    def get_html_for_block(self, container, html_block_number):
         output = []
-        xblock = container.get_children()[theory_block_number]
+        xblock = container.get_children()[html_block_number]
         if xblock.category == 'html':
             data = xblock.data
             soup = BeautifulSoup(data, 'html.parser')
@@ -143,15 +143,31 @@ class CourseBot(object):
                                'content': start_url+each[8:]})
         return output
 
-    @staticmethod
-    def get_positive_message(container):
-        return container.get_children()[container.theoretical_part+container.question_part].data
+    def get_positive_message(self, container):
+        return self.get_html_for_block(container, container.theoretical_part+
+                                                  container.question_part)
 
-    @staticmethod
-    def get_negative_message(container):
-        return container.get_children()[container.theoretical_part+
-                                        container.question_part+
-                                        container.positive_part].data
+    def get_negative_message(self, container):
+        return self.get_html_for_block(container, container.theoretical_part+
+                                                  container.question_part+
+                                                  container.positive_part)
+
+    def send_message_from_html_dict(self, bot, chat_id, message, reply_markup):
+        if message['type'] == 'paragraph':
+            bot.sendMessage(chat_id=chat_id,
+                            text=message['content'],
+                            reply_markup=reply_markup,
+                            parse_mode=telegram.ParseMode.HTML)
+        elif message['type'] == 'image':
+            bot.sendPhoto(chat_id=chat_id,
+                          reply_markup=reply_markup,
+                          photo=message['content'].encode('utf-8', 'strict'))
+        elif message['type'] == 'video':
+            print message['content'].encode('utf-8', 'strict')
+            bot.sendVideo(chat_id=chat_id,
+                          reply_markup=reply_markup,
+                          video=message['content'].encode('utf-8', 'strict'))
+
 
     @staticmethod
     def get_question_for_block(container, question_block_numpber):
@@ -246,26 +262,35 @@ class CourseBot(object):
                 course_key = CourseKey.from_string(self.course_key)
                 bot_xblocks_count = len(get_course_blocks(course_key, self.category))
                 if progress.current_step_order < bot_xblocks_count - 1:
-                    message = self.get_positive_message(current_step)
+                    message_dict =  self.get_positive_message(current_step)
+                    for count, each in enumerate(message_dict):
+                        if count == len(message_dict) - 1:
+                            keyboard = InlineKeyboardButton(text=bot_messages['next_theme'],
+                                                        callback_data=json.dumps({'method': 'show_progress',
+                                                                                  'kwargs': {}}))
+                            reply_markup = InlineKeyboardMarkup([[keyboard]])
+                        self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
+
                     progress.grade_for_step = 0
                     progress.block_in_status = 0
                     progress.current_step_order += 1
                     progress.xblock_key = None
                     progress.current_step_status = UserCourseProgress.STATUS_START
-                    keyboard = InlineKeyboardButton(text=bot_messages['next_theme'],
-                                                    callback_data=json.dumps({'method': 'show_progress',
-                                                                              'kwargs': {}}))
-                    reply_markup = InlineKeyboardMarkup([[keyboard]])
+                    
                 else:
                     message = "You've complete this course"
                     progress.current_step_status = UserCourseProgress.STATUS_END
 
             else:
-                message = self.get_negative_message(current_step)
-                keyboard = InlineKeyboardButton(text=bot_messages['not_know'],
+                message_dict =  self.get_negative_message(current_step)
+                for count, each in enumerate(message_dict):
+                    if count == len(message_dict) - 1:
+                        keyboard = InlineKeyboardButton(text=bot_messages['not_know'],
                                                 callback_data=json.dumps({'method': 'not_know',
                                                                           'kwargs': {}}))
-                reply_markup = InlineKeyboardMarkup([[keyboard]])
+                        reply_markup = InlineKeyboardMarkup([[keyboard]])
+
+                    self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
         else:
             if weight == 0:
                 message = "idiot"
@@ -323,7 +348,7 @@ class CourseBot(object):
                             reply_markup=reply_markup,
                             parse_mode=telegram.ParseMode.MARKDOWN)
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
-            message_dict = self.get_theory_for_block(current_step, progress.block_in_status)
+            message_dict = self.get_html_for_block(current_step, progress.block_in_status)
             progress.block_in_status += 1
             progress.save()
             reply_markup = None
@@ -338,20 +363,7 @@ class CourseBot(object):
                                                                                   'kwargs': {}}))
                     reply_markup = InlineKeyboardMarkup([[keyboard]])
 
-                if each['type'] == 'paragraph':
-                    bot.sendMessage(chat_id=chat_id,
-                                    text=each['content'],
-                                    reply_markup=reply_markup,
-                                    parse_mode=telegram.ParseMode.HTML)
-                elif each['type'] == 'image':
-                    bot.sendPhoto(chat_id=chat_id,
-                                  reply_markup=reply_markup,
-                                  photo=each['content'].encode('utf-8', 'strict'))
-                elif each['type'] == 'video':
-                    print each['content'].encode('utf-8', 'strict')
-                    bot.sendVideo(chat_id=chat_id,
-                                  reply_markup=reply_markup,
-                                  video=each['content'].encode('utf-8', 'strict'))
+                self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
             # if 'Video_url' in current_step:
             #     bot.sendVideo(chat_id=chat_id, video=current_step['Video_url'].encode('utf-8', 'strict'))
             # elif 'Image_url' in current_step:

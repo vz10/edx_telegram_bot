@@ -49,6 +49,16 @@ In `lms/envs/common.py` :
     ...
     ```
     
+In `cms/envs/common.py` :
+
+- override default course page template 
+    ```
+    ...
+    
+    MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx_telegram_bot/templates/cms'] + \
+                             MAKO_TEMPLATES['main']
+    ...
+    ```
 Use this command to start bot  in parallel terminal after starting LMS
 ```
 ./manage.py lms start_bot --settings=devstack

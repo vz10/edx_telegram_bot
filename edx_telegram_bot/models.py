@@ -186,16 +186,29 @@ class UserCourseProgress(models.Model):
     xblock_key = models.CharField(max_length=100, blank=True, null=True)
 
 
-class BotFriendlyCourses(models.Model):
+class TelegramBot(models.Model):
     """
-    List of courses which supports telegram bot
+    List of currently available telegram bots
     """
-    course_key = models.CharField(max_length=100, db_index=True)
     bot_name = models.CharField(max_length=64, blank=True, null=True)
     token = models.CharField(max_length=50, blank=True, null=True)
+    
+    def __unicode__(self):
+        return self.bot_name
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         bot = telegram.Bot(token=self.token)
         self.bot_name = bot.getMe().username
-        super(BotFriendlyCourses, self).save()
+        super(TelegramBot, self).save()
+
+
+class BotFriendlyCourses(models.Model):
+    """
+    List of courses which supports telegram bot
+    """
+    course_key = models.CharField(max_length=100, db_index=True)
+    bot = models.ForeignKey(TelegramBot, null=True)
+
+
+

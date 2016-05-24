@@ -1,0 +1,17 @@
+<%!
+from django.utils.translation import ugettext as _
+%>
+<style>
+    <%include file="bot.css"/>
+</style>
+
+<li class="nav-item">
+    <a href="#" class="button button-toggle button-toggle-bot collapse-all">
+        <span class="add-bot"><i class="icon fa fa-plus"></i> <span class="label">${_("Add Bot")}</span></span>
+      	<span class="remove-bot"><i class="icon fa fa-minus"></i> <span class="label">${_("Remove Bot")}</span></span>
+    </a>
+</li>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.3/jquery.min.js"></script>
+<script>
+    <%include file="add_bot_button.js" args="user=user, csrf_token=csrf_token"/>
+</script>
