@@ -3,6 +3,7 @@ from django.utils.translation import ugettext as _
 from django.conf import settings
 from django.contrib.sites.models import Site
 %>
+
 var add_button = $('.add-bot'),
 	remove_button = $('.remove-bot');
 	no_bot = '${_("Bot is not connected to your course")}';
@@ -29,7 +30,7 @@ function check_course(method){
 				bot_link = $('#bot-link');
 			var link_to_bot = 'https://telegram.me/'+data.bot_name
     		bot_info.text('${_("Bot for this course is @")}'+data.bot_name);
-    		bot_link.html('Link to bot <a href="'+link_to_bot+'" target="blank">'+link_to_bot+'</a>');
+    		bot_link.html('<p><h5>Link to bot:</h5><a href="'+link_to_bot+'" target="blank">'+link_to_bot+'</a></p>');
     	}
     	else {
 	 		var bot_title = $('#bot-title'),
@@ -46,11 +47,13 @@ function check_course(method){
     });
 }
 
-add_button.on('click', function(){
+add_button.on('click', function(e){
+    e.preventDefault();
 	check_course('POST');
 });
 
-remove_button.on('click', function(){
+remove_button.on('click', function(e){
+    e.preventDefault();
 	check_course('DELETE');
 });
 check_course('GET');

@@ -15,7 +15,8 @@ from xmodule.modulestore.django import modulestore
 from xmodule.contentstore.content import StaticContent
 from openedx.core.djangoapps.credit.utils import get_course_blocks
 from opaque_keys.edx.keys import UsageKey
-
+from student.models import anonymous_id_for_user
+from submissions import api
 
 from models import (EdxTelegramUser, UserCourseProgress)
 from decorators import is_telegram_user
@@ -33,7 +34,9 @@ bot_messages = {
     'next_question': "Next question",
     'next_theme': "Next theme",
     'finish': 'The course is finished, there is no one at home, come later.',
-    'hi': "Hi Earthman! I'm glad to see you"
+    'hi': "Hi Earthman! I'm glad to see you",
+    'correct_answer': "Great answer, you've got %d points fot that question",
+    'incorrect_answer': 'Incorrect answer :('
 }
 
 
@@ -168,6 +171,14 @@ class CourseBot(object):
                           reply_markup=reply_markup,
                           video=message['content'].encode('utf-8', 'strict'))
 
+    def output_non_question_xblock(self, bot, chat_id, message_dict, final_message, params_dict):
+        reply_markup = None
+        for count, each in enumerate(message_dict):
+            if count == len(message_dict) - 1:
+                keyboard = InlineKeyboardButton(text=final_message,
+                                                callback_data=json.dumps(params_dict))
+                reply_markup = InlineKeyboardMarkup([[keyboard]])
+            self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
 
     @staticmethod
     def get_question_for_block(container, question_block_numpber):
@@ -250,61 +261,65 @@ class CourseBot(object):
         progress.save()
         self.show_progress(bot, chat_id, telegram_user)
 
+    def grade_xblock(self, container, step, grade, telegram_user):
+        xblock = container.get_children()[container.theoretical_part+step]
+        submission_id = {"item_id": xblock.location,
+                              "item_type": 'bot_xblock',
+                              "course_id": container.course_id,
+                              "student_id": anonymous_id_for_user(telegram_user.student, container.course_id)}
+        submission = api.create_submission(submission_id, {'comment':'from bot'}, attempt_number=1)
+        api.set_score(submission['uuid'], int(grade), int(xblock.weight or 1))
+
     def check(self, bot, chat_id, telegram_user, weight=1):
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
+        # Grade current questional Xblock
         current_step = self.get_xblock_for_step(progress.current_step_order, telegram_user)
+        self.grade_xblock(current_step, progress.block_in_status, weight, telegram_user)
+        print weight
+        message = bot_messages['incorrect_answer'] if weight == 0 else bot_messages['correct_answer'] % int(weight)
         progress.grade_for_step += weight
         progress.block_in_status += 1
-        reply_markup = None
+        # Check passing grade if it was the last question in Xblock
         if progress.block_in_status == current_step.question_part:
+            bot.sendMessage(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN)
             if progress.grade_for_step >= current_step.passing_grade:
                 course_key = CourseKey.from_string(self.course_key)
                 bot_xblocks_count = len(get_course_blocks(course_key, self.category))
                 if progress.current_step_order < bot_xblocks_count - 1:
                     message_dict =  self.get_positive_message(current_step)
-                    for count, each in enumerate(message_dict):
-                        if count == len(message_dict) - 1:
-                            keyboard = InlineKeyboardButton(text=bot_messages['next_theme'],
-                                                        callback_data=json.dumps({'method': 'show_progress',
-                                                                                  'kwargs': {}}))
-                            reply_markup = InlineKeyboardMarkup([[keyboard]])
-                        self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
-
+                    self.output_non_question_xblock(bot, chat_id, 
+                                                    message_dict, 
+                                                    bot_messages['next_theme'], 
+                                                    {'method': 'show_progress',
+                                                     'kwargs': {}})
                     progress.grade_for_step = 0
                     progress.block_in_status = 0
                     progress.current_step_order += 1
                     progress.xblock_key = None
                     progress.current_step_status = UserCourseProgress.STATUS_START
-                    
                 else:
                     message = "You've complete this course"
                     progress.current_step_status = UserCourseProgress.STATUS_END
 
             else:
                 message_dict =  self.get_negative_message(current_step)
-                for count, each in enumerate(message_dict):
-                    if count == len(message_dict) - 1:
-                        keyboard = InlineKeyboardButton(text=bot_messages['not_know'],
-                                                callback_data=json.dumps({'method': 'not_know',
-                                                                          'kwargs': {}}))
-                        reply_markup = InlineKeyboardMarkup([[keyboard]])
-
-                    self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
+                self.output_non_question_xblock(bot, chat_id, 
+                                                    message_dict, 
+                                                    bot_messages['not_know'], 
+                                                    {'method': 'not_know',
+                                                     'kwargs': {}})
         else:
-            if weight == 0:
-                message = "idiot"
-            else:
-                message = 'super'
             keyboard = InlineKeyboardButton(text=bot_messages['next_question'],
                                             callback_data=json.dumps({'method': 'show_progress',
                                                                       'kwargs': {}}))
             reply_markup = InlineKeyboardMarkup([[keyboard]])
+            bot.sendMessage(chat_id=chat_id,
+                            text=message,
+                            reply_markup=reply_markup,
+                            parse_mode=telegram.ParseMode.MARKDOWN)
         progress.save()
-        bot.sendMessage(chat_id=chat_id,
-                        text=message,
-                        reply_markup=reply_markup,
-                        parse_mode=telegram.ParseMode.MARKDOWN)
+
 
     def inline_keyboard(self, bot, update):
         answer = json.loads(update.callback_query.data)
@@ -351,19 +366,16 @@ class CourseBot(object):
             message_dict = self.get_html_for_block(current_step, progress.block_in_status)
             progress.block_in_status += 1
             progress.save()
-            reply_markup = None
-            for count, each in enumerate(message_dict):
-                if count == len(message_dict) - 1:
-                    if progress.block_in_status == current_step.theoretical_part:
-                        keyboard = InlineKeyboardButton(text=bot_messages['now_i_can'],
-                                                        callback_data=json.dumps({'method': 'ready', 'kwargs': {}}))
-                    else:
-                        keyboard = InlineKeyboardButton(text=bot_messages['next_theory'],
-                                                        callback_data=json.dumps({'method': 'show_progress',
-                                                                                  'kwargs': {}}))
-                    reply_markup = InlineKeyboardMarkup([[keyboard]])
-
-                self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
+            if progress.block_in_status == current_step.theoretical_part:
+                final_message = bot_messages['now_i_can']
+                params_dict = {'method': 'ready', 'kwargs': {}}
+            else:
+                final_message = bot_messages['next_theory']
+                params_dict = {'method': 'show_progress', 'kwargs': {}}
+            self.output_non_question_xblock(bot, chat_id, 
+                                            message_dict, 
+                                            final_message, 
+                                            params_dict)
             # if 'Video_url' in current_step:
             #     bot.sendVideo(chat_id=chat_id, video=current_step['Video_url'].encode('utf-8', 'strict'))
             # elif 'Image_url' in current_step:
