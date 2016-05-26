@@ -18,7 +18,7 @@ from opaque_keys.edx.keys import UsageKey
 from student.models import anonymous_id_for_user
 from submissions import api
 
-from models import (EdxTelegramUser, UserCourseProgress)
+from models import (EdxTelegramUser, UserCourseProgress, BotFriendlyCourses, TelegramBot)
 from decorators import is_telegram_user
 
 import logging
@@ -61,7 +61,9 @@ class CourseBot(object):
             # '/die': "Don't even think about it, motherfucker"
         }
 
-        self.updater = Updater(token=kwargs.get('token', 'course_name'), workers=10)
+        self.token = kwargs.get('token', 'course_name')
+        self.telegram_bot = TelegramBot.objects.get(token=self.token)
+        self.updater = Updater(token=self.token, workers=10)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 
@@ -73,13 +75,28 @@ class CourseBot(object):
         self.dispatcher.addHandler(CallbackQueryHandler(self.inline_keyboard))
         # self.dispatcher.addHandler(CommandHandler('die', self.die))
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
-
         self.dispatcher.addErrorHandler(self.error)
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
+        self.queue = self.updater.start_polling()        
 
-        self.queue = self.updater.start_polling()
+    @property
+    def course_key(self):
+        try:
+            return BotFriendlyCourses.objects.filter(bot=self.telegram_bot).first().course_key
+        except AttributeError:
+            return None
 
-        self.course_key = kwargs.get('collection', 'course_name')
+    def sendMessage(self, bot, chat_id, text='', reply_markup=None, parse_mode=telegram.ParseMode.HTML):
+        if self.course_key:
+            bot.sendMessage(chat_id=chat_id,
+                            text=text,
+                            reply_markup=reply_markup,
+                            parse_mode=parse_mode)
+        else:
+            bot.sendMessage(chat_id=chat_id,
+                            text="I'm not connected to any course right now",
+                            reply_markup=reply_markup,
+                            parse_mode=parse_mode)
 
     def get_xblock_for_step(self, step, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
@@ -90,8 +107,8 @@ class CourseBot(object):
         else:
             # course_key = CourseKey.from_string(self.course_key)
             # bot_xblocks = get_course_blocks(course_key, self.category)
-            bot_xblocks = []
 
+            bot_xblocks = []
             course_key = CourseKey.from_string(self.course_key)
             course = modulestore().get_course(course_key)
             for sequence in course.get_children():
@@ -128,10 +145,9 @@ class CourseBot(object):
                     except ValidationError:
                         current_domen = Site.objects.get_current()
                         course_key = CourseKey.from_string(self.course_key)
-                        url = '%s%s%s' % (
-                                    current_domen,
-                                    StaticContent.get_base_url_path_for_course_assets(course_key),
-                                    url[8:])
+                        url = '%s%s%s' % (current_domen,
+                                          StaticContent.get_base_url_path_for_course_assets(course_key),
+                                          url[8:])
                     output.append({'type': 'image',
                                    'content': url})
                 else:
@@ -143,7 +159,7 @@ class CourseBot(object):
             start_url = '%s%s' % (current_domen, StaticContent.get_base_url_path_for_course_assets(course_key))
             for each in xblock.html5_sources:
                 output.append({'type': 'video',
-                               'content': start_url+each[8:]})
+                               'content': start_url + each[8:]})
         return output
 
     def get_positive_message(self, container):
@@ -151,22 +167,22 @@ class CourseBot(object):
                                                   container.question_part)
 
     def get_negative_message(self, container):
-        return self.get_html_for_block(container, container.theoretical_part+
-                                                  container.question_part+
-                                                  container.positive_part)
+        return self.get_html_for_block(container,
+                                       container.theoretical_part+
+                                       container.question_part+
+                                       container.positive_part)
 
     def send_message_from_html_dict(self, bot, chat_id, message, reply_markup):
         if message['type'] == 'paragraph':
-            bot.sendMessage(chat_id=chat_id,
-                            text=message['content'],
-                            reply_markup=reply_markup,
-                            parse_mode=telegram.ParseMode.HTML)
+            self.sendMessage(bot,
+                             chat_id=chat_id,
+                             text=message['content'],
+                             reply_markup=reply_markup)
         elif message['type'] == 'image':
             bot.sendPhoto(chat_id=chat_id,
                           reply_markup=reply_markup,
                           photo=message['content'].encode('utf-8', 'strict'))
         elif message['type'] == 'video':
-            print message['content'].encode('utf-8', 'strict')
             bot.sendVideo(chat_id=chat_id,
                           reply_markup=reply_markup,
                           video=message['content'].encode('utf-8', 'strict'))
@@ -182,27 +198,25 @@ class CourseBot(object):
 
     @staticmethod
     def get_question_for_block(container, question_block_numpber):
-        data = container.get_children()[container.theoretical_part+question_block_numpber].data
+        data = container.get_children()[container.theoretical_part + question_block_numpber].data
         soup = BeautifulSoup(data, 'html.parser')
         wrong_answers = [each.get_text() for each in soup.find_all(correct="false")]
         right_answer = [each.get_text() for each in soup.find_all(correct="true")]
-        weight = container.get_children()[container.theoretical_part+question_block_numpber].weight
+        weight = container.get_children()[container.theoretical_part + question_block_numpber].weight
         if weight is None:
             weight = 1
         soup.multiplechoiceresponse.extract()
         question = soup.problem.get_text()
         return question, wrong_answers, right_answer, weight
 
-    @staticmethod
-    def hi(bot, update):
+    def hi(self, bot, update):
         print (update)
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        bot.sendMessage(chat_id=chat_id, text=bot_messages['hi'])
+        self.sendMessage(bot, chat_id=chat_id, text=bot_messages['hi'])
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD7wEAAmONagABIoEfTRQCUCQC')
 
-    @staticmethod
-    def unknown(bot, update):
+    def unknown(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
@@ -210,40 +224,47 @@ class CourseBot(object):
                     Sorry, bro. I'm just a little raccoon and I don't know such words.
                     Maybe you'll try /help page to improve our communication?
                   """
-        bot.sendMessage(chat_id=chat_id,
-                        text=message)
+        self.sendMessage(bot,
+                         chat_id=chat_id,
+                         text=message)
 
     @is_telegram_user
     def start(self, bot, update):
         chat_id = update.message.chat_id
-        telegram_id = update.message.from_user.id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
-        UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
-        self.show_progress(bot, chat_id, telegram_user)
+        self.sendMessage(bot=bot,
+                         chat_id=chat_id,
+                         text="Hi, let's start out course")
+        if self.course_key:
+            telegram_id = update.message.from_user.id
+            telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+            UserCourseProgress.objects.get_or_create(telegram_user=telegram_user, course_key=self.course_key)
+            self.show_progress(bot, chat_id, telegram_user)
 
     @is_telegram_user
     def restart(self, bot, update):
         chat_id = update.message.chat_id
-        telegram_id = update.message.from_user.id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
-        UserCourseProgress.objects.filter(telegram_user=telegram_user, course_key=self.course_key).delete()
-        UserCourseProgress.objects.create(telegram_user=telegram_user, course_key=self.course_key)
-        bot.sendMessage(chat_id=chat_id,
-                        text="Let's start from scratch")
-        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        self.show_progress(bot, chat_id, telegram_user)
+        self.sendMessage(bot=bot, chat_id=chat_id,
+                         text="Let's start from scratch")
+        if self.course_key:
+            telegram_id = update.message.from_user.id
+            telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+            UserCourseProgress.objects.filter(telegram_user=telegram_user, course_key=self.course_key).delete()
+            UserCourseProgress.objects.create(telegram_user=telegram_user, course_key=self.course_key)
+            bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+            self.show_progress(bot, chat_id, telegram_user)
 
     def help_command(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         time.sleep(1)
         bot.sendPhoto(chat_id=chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
-        bot.sendMessage(chat_id=chat_id,
-                        text="I have a lot of raccoon-workers, all of them want to help you, but they not" \
-                             " very smart so they can understand only such commands:")
+        self.sendMessage(bot,
+                         chat_id=chat_id,
+                         text="I have a lot of raccoon-workers, all of them want to help you, but they not" \
+                              " very smart so they can understand only such commands:")
 
         for (command, description) in self.commands.items():
-            bot.sendMessage(chat_id=chat_id, text=command + ' - ' + description)
+            self.sendMessage(bot, chat_id=chat_id, text=command + ' - ' + description)
 
     def not_know(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
@@ -264,10 +285,10 @@ class CourseBot(object):
     def grade_xblock(self, container, step, grade, telegram_user):
         xblock = container.get_children()[container.theoretical_part+step]
         submission_id = {"item_id": xblock.location,
-                              "item_type": 'bot_xblock',
-                              "course_id": container.course_id,
-                              "student_id": anonymous_id_for_user(telegram_user.student, container.course_id)}
-        submission = api.create_submission(submission_id, {'comment':'from bot'}, attempt_number=1)
+                         "item_type": 'bot_xblock',
+                         "course_id": container.course_id,
+                         "student_id": anonymous_id_for_user(telegram_user.student, container.course_id)}
+        submission = api.create_submission(submission_id, {'comment': 'from bot'}, attempt_number=1)
         api.set_score(submission['uuid'], int(grade), int(xblock.weight or 1))
 
     def check(self, bot, chat_id, telegram_user, weight=1):
@@ -282,15 +303,16 @@ class CourseBot(object):
         progress.block_in_status += 1
         # Check passing grade if it was the last question in Xblock
         if progress.block_in_status == current_step.question_part:
-            bot.sendMessage(chat_id=chat_id, text=message, parse_mode=telegram.ParseMode.MARKDOWN)
+            self.sendMessage(bot, chat_id=chat_id, text=message)
             if progress.grade_for_step >= current_step.passing_grade:
                 course_key = CourseKey.from_string(self.course_key)
                 bot_xblocks_count = len(get_course_blocks(course_key, self.category))
                 if progress.current_step_order < bot_xblocks_count - 1:
-                    message_dict =  self.get_positive_message(current_step)
-                    self.output_non_question_xblock(bot, chat_id, 
-                                                    message_dict, 
-                                                    bot_messages['next_theme'], 
+                    message_dict = self.get_positive_message(current_step)
+                    self.output_non_question_xblock(bot,
+                                                    chat_id,
+                                                    message_dict,
+                                                    bot_messages['next_theme'],
                                                     {'method': 'show_progress',
                                                      'kwargs': {}})
                     progress.grade_for_step = 0
@@ -299,37 +321,41 @@ class CourseBot(object):
                     progress.xblock_key = None
                     progress.current_step_status = UserCourseProgress.STATUS_START
                 else:
-                    message = "You've complete this course"
+                    message = "You've completed this course"
+                    self.sendMessage(bot, chat_id=chat_id, text=message)
                     progress.current_step_status = UserCourseProgress.STATUS_END
 
             else:
-                message_dict =  self.get_negative_message(current_step)
-                self.output_non_question_xblock(bot, chat_id, 
-                                                    message_dict, 
-                                                    bot_messages['not_know'], 
-                                                    {'method': 'not_know',
-                                                     'kwargs': {}})
+                message_dict = self.get_negative_message(current_step)
+                self.output_non_question_xblock(bot,
+                                                chat_id,
+                                                message_dict,
+                                                bot_messages['not_know'],
+                                                {'method': 'not_know',
+                                                 'kwargs': {}})
         else:
             keyboard = InlineKeyboardButton(text=bot_messages['next_question'],
                                             callback_data=json.dumps({'method': 'show_progress',
                                                                       'kwargs': {}}))
             reply_markup = InlineKeyboardMarkup([[keyboard]])
-            bot.sendMessage(chat_id=chat_id,
-                            text=message,
-                            reply_markup=reply_markup,
-                            parse_mode=telegram.ParseMode.MARKDOWN)
+            self.sendMessage(bot,
+                             chat_id=chat_id,
+                             text=message,
+                             reply_markup=reply_markup)
         progress.save()
 
-
     def inline_keyboard(self, bot, update):
-        answer = json.loads(update.callback_query.data)
-        telegram_id = update.callback_query.from_user.id
-        telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         chat_id = update.callback_query.message.chat.id
-        bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         message_id = update.callback_query.message.message_id
         bot.editMessageReplyMarkup(chat_id=chat_id, message_id=message_id)
-        getattr(self, answer['method'])(bot, chat_id, telegram_user, **answer['kwargs'])
+        if self.course_key:
+            answer = json.loads(update.callback_query.data)
+            telegram_id = update.callback_query.from_user.id
+            telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
+            bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
+            getattr(self, answer['method'])(bot, chat_id, telegram_user, **answer['kwargs'])
+        else:
+            self.sendMessage(bot, chat_id)
 
     def show_progress(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
@@ -341,10 +367,10 @@ class CourseBot(object):
                                                    callback_data=json.dumps({'method': 'not_know', 'kwargs': {}}))
             reply_markup = InlineKeyboardMarkup([[help_button], [not_know_button]])
             message = self.get_block_title(current_step)
-            bot.sendMessage(chat_id=chat_id,
-                            text=message,
-                            reply_markup=reply_markup,
-                            parse_mode=telegram.ParseMode.MARKDOWN)
+            self.sendMessage(bot,
+                             chat_id=chat_id,
+                             text=message,
+                             reply_markup=reply_markup)
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
             question, wrong_answers, right_answer, weight = self.get_question_for_block(current_step,
                                                                                         progress.block_in_status)
@@ -358,10 +384,10 @@ class CourseBot(object):
             random.shuffle(answers)
             message = question
             reply_markup = InlineKeyboardMarkup([[each] for each in answers])
-            bot.sendMessage(chat_id=chat_id,
-                            text=message,
-                            reply_markup=reply_markup,
-                            parse_mode=telegram.ParseMode.MARKDOWN)
+            self.sendMessage(bot,
+                             chat_id=chat_id,
+                             text=message,
+                             reply_markup=reply_markup)
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
             message_dict = self.get_html_for_block(current_step, progress.block_in_status)
             progress.block_in_status += 1
@@ -372,9 +398,9 @@ class CourseBot(object):
             else:
                 final_message = bot_messages['next_theory']
                 params_dict = {'method': 'show_progress', 'kwargs': {}}
-            self.output_non_question_xblock(bot, chat_id, 
-                                            message_dict, 
-                                            final_message, 
+            self.output_non_question_xblock(bot, chat_id,
+                                            message_dict,
+                                            final_message,
                                             params_dict)
             # if 'Video_url' in current_step:
             #     bot.sendVideo(chat_id=chat_id, video=current_step['Video_url'].encode('utf-8', 'strict'))
@@ -387,16 +413,17 @@ class CourseBot(object):
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         if progress.current_step_status == UserCourseProgress.STATUS_END:
-            bot.sendMessage(chat_id=chat_id,
-                            text=bot_messages['finish'])
+            self.sendMessage(bot,
+                             chat_id=chat_id,
+                             text=bot_messages['finish'])
             return
         self.unknown(bot, update)
 
     def die(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        bot.sendMessage(chat_id=chat_id, text='AAAAAAAA!!!! You kill me, motherfucker')
-        bot.sendMessage(chat_id=chat_id, text="But I'll be back!!!!")
+        self.sendMessage(bot, chat_id=chat_id, text='AAAAAAAA!!!! You kill me, motherfucker')
+        self.sendMessage(bot, chat_id=chat_id, text="But I'll be back!!!!")
         self.updater.stop()
 
     @staticmethod
@@ -408,7 +435,7 @@ class CourseBot(object):
         chat_id = update.message.chat_id
 
         def job(bot):
-            bot.sendMessage(chat_id=chat_id, text='30 seconds passed and I want to'
+            self.sendMessage(bot, chat_id=chat_id, text='30 seconds passed and I want to'
                                                   ' remind you that you are fucking idiot')
 
         self.j.put(job, 30, repeat=False)
