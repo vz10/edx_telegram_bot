@@ -71,13 +71,13 @@ class CourseBot(object):
         self.dispatcher.addHandler(CommandHandler('help', self.help_command))
         self.dispatcher.addHandler(CommandHandler('start', self.start))
         self.dispatcher.addHandler(CommandHandler('restart', self.restart))
-        self.dispatcher.addHandler(MessageHandler([Filters.text],self.echo))
+        self.dispatcher.addHandler(MessageHandler([Filters.text], self.echo))
         self.dispatcher.addHandler(CallbackQueryHandler(self.inline_keyboard))
         # self.dispatcher.addHandler(CommandHandler('die', self.die))
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
         self.dispatcher.addErrorHandler(self.error)
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
-        self.queue = self.updater.start_polling()        
+        self.queue = self.updater.start_polling()
 
     @property
     def course_key(self):
@@ -163,13 +163,12 @@ class CourseBot(object):
         return output
 
     def get_positive_message(self, container):
-        return self.get_html_for_block(container, container.theoretical_part+
-                                                  container.question_part)
+        return self.get_html_for_block(container, container.theoretical_part + container.question_part)
 
     def get_negative_message(self, container):
         return self.get_html_for_block(container,
-                                       container.theoretical_part+
-                                       container.question_part+
+                                       container.theoretical_part +
+                                       container.question_part +
                                        container.positive_part)
 
     def send_message_from_html_dict(self, bot, chat_id, message, reply_markup):
@@ -260,7 +259,7 @@ class CourseBot(object):
         bot.sendPhoto(chat_id=chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
         self.sendMessage(bot,
                          chat_id=chat_id,
-                         text="I have a lot of raccoon-workers, all of them want to help you, but they not" \
+                         text="I have a lot of raccoon-workers, all of them want to help you, but they not"
                               " very smart so they can understand only such commands:")
 
         for (command, description) in self.commands.items():
@@ -283,7 +282,7 @@ class CourseBot(object):
         self.show_progress(bot, chat_id, telegram_user)
 
     def grade_xblock(self, container, step, grade, telegram_user):
-        xblock = container.get_children()[container.theoretical_part+step]
+        xblock = container.get_children()[container.theoretical_part + step]
         submission_id = {"item_id": xblock.location,
                          "item_type": 'bot_xblock',
                          "course_id": container.course_id,
@@ -436,7 +435,7 @@ class CourseBot(object):
 
         def job(bot):
             self.sendMessage(bot, chat_id=chat_id, text='30 seconds passed and I want to'
-                                                  ' remind you that you are fucking idiot')
+                                                        ' remind you that you are fucking idiot')
 
         self.j.put(job, 30, repeat=False)
 
