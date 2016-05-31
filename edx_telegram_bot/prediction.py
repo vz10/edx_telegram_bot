@@ -43,7 +43,7 @@ def get_stop_words():
 
 
 def find_nearest(array, value):
-    idx = (np.abs(array-value)).argmin()
+    idx = (np.abs(array - value)).argmin()
     return idx
 
 
@@ -52,19 +52,19 @@ def get_test_courses(telegram_id):
     test_courses = LearningPredictionForUser.objects.get_or_create(telegram_user=telegram_user)[0]
     matrix_of_courses = TfidMatrixAllCourses.objects.all().first().matrix
     output = []
-    cosine_similarities = linear_kernel(matrix_of_courses[np.random.randint(0, matrix_of_courses.shape[0]-1)],
+    cosine_similarities = linear_kernel(matrix_of_courses[np.random.randint(0, matrix_of_courses.shape[0] - 1)],
                                         matrix_of_courses).flatten()
     list_of_indexes = np.linspace(cosine_similarities.min(),
                                   cosine_similarities.max(),
                                   num=COUNT_OF_TEST_COURSES)
     for each in list_of_indexes:
         test_course = find_nearest(cosine_similarities, each)
-        if not test_course in output:
+        if test_course not in output:
             output.append(test_course)
     test_courses.save_list(output)
 
 
-def i_am_going_to_teach_you(telegram_user, answer_id, is_right=False, teaching_coeff=0.01 ):
+def i_am_going_to_teach_you(telegram_user, answer_id, is_right=False, teaching_coeff=0.01):
     learn_vector = TfidUserVector.objects.get(telegram_user=telegram_user)
     course_matrix = TfidMatrixAllCourses.objects.all().first().matrix
     answer = course_matrix[answer_id]
@@ -96,5 +96,5 @@ def prediction(telegram_id):
     cosine_similarities[list_of_user_courses_indexes] = -1000
 
     related_docs_indices = cosine_similarities.argsort()
-    little_random = np.random.randint(5,10)
+    little_random = np.random.randint(5, 10)
     return related_docs_indices[-little_random]

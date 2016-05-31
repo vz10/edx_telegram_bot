@@ -14,7 +14,8 @@ def is_telegram_user(f):
         if not EdxTelegramUser.objects.filter(telegram_id=telegram_id):
             current_site = Site.objects.get_current()
             bot.sendMessage(chat_id=chat_id,
-                            text="I don't know you, bro. You'd better go and register you telegram in edX first. On %s" % current_site)
+                            text="I don't know you, bro. You'd better go and register"
+                                 " you telegram in edX first. On %s" % current_site)
             return
         return f(*args, **kw)
     return wrapper

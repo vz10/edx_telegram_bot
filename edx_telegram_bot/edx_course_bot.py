@@ -10,8 +10,6 @@ from bot_mongo import BotMongo
 from models import (EdxTelegramUser, UserCourseProgress)
 from decorators import is_telegram_user
 
-
-
 import logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -53,7 +51,7 @@ class CourseBot(object):
         self.dispatcher.addHandler(CommandHandler('help', self.help_command))
         self.dispatcher.addHandler(CommandHandler('start', self.start))
         self.dispatcher.addHandler(CommandHandler('restart', self.restart))
-        self.dispatcher.addHandler(MessageHandler([Filters.text],self.echo))
+        self.dispatcher.addHandler(MessageHandler([Filters.text], self.echo))
         self.dispatcher.addHandler(CallbackQueryHandler(self.inline_keyboard))
         # self.dispatcher.addHandler(CommandHandler('die', self.die))
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
@@ -72,7 +70,7 @@ class CourseBot(object):
         time.sleep(1)
         bot.sendPhoto(chat_id=chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
         bot.sendMessage(chat_id=chat_id,
-                        text="I have a lot of raccoon-workers, all of them want to help you, but they not" \
+                        text="I have a lot of raccoon-workers, all of them want to help you, but they not"
                              " very smart so they can understand only such commands:")
 
         for (command, description) in self.commands.items():
@@ -203,7 +201,8 @@ class CourseBot(object):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
-        message = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
+        message = "Sorry, bro. I'm just a little raccoon and I don't know such words." \
+                  " Maybe you'll try /help page to improve our communication?"
         bot.sendMessage(chat_id=chat_id,
                         text=message)
 
