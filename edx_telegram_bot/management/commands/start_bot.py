@@ -12,10 +12,5 @@ from ...models import TelegramBot
 class Command(NoArgsCommand):
     def handle(self, **options):
         RaccoonBot()
-        CourseBot(token='187925341:AAFTaWDWkTDjFPOJLlA1ArRiK-Sviypx8QM',
-        		  collection='111/111/111')
-        # map(lambda each: CourseBot(token=each.bot.token,
-        #                            collection=each.course_key),
-        #     BotFriendlyCourses.objects.all())
+        CourseBot(token='187925341:AAFTaWDWkTDjFPOJLlA1ArRiK-Sviypx8QM', collection='111/111/111')
         map(lambda each: XblockCourseBot(token=each.token), TelegramBot.objects.all())
-
