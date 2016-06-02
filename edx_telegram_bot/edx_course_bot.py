@@ -202,7 +202,7 @@ class CourseBot(object):
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
         message = "Sorry, bro. I'm just a little raccoon and I don't know such words." \
-                  " Maybe you'll try /help page to improve our communication?"
+                  ." Maybe you'll try /help page to improve our communication?"
         bot.sendMessage(chat_id=chat_id,
                         text=message)
 
