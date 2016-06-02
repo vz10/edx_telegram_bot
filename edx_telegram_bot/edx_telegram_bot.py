@@ -62,11 +62,12 @@ class RaccoonBot(object):
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
         self.dispatcher.addHandler(CommandHandler('help', self.help_command))
         self.dispatcher.addHandler(CommandHandler('my_courses', self.my_courses_command))
+        self.dispatcher.addHandler(CommandHandler('all_courses', self.courses_command))
         self.dispatcher.addHandler(CommandHandler('start', self.send_hash_command))
         self.dispatcher.addHandler(CommandHandler('recommendations', self.recommend_command))
         self.dispatcher.addHandler(CommandHandler('location', self.location))
         self.dispatcher.addHandler(CommandHandler('near_courses', self.near_courses_command))
-        
+
         self.dispatcher.addHandler(MessageHandler([Filters.text], self.echo))
         self.dispatcher.addHandler(MessageHandler([Filters.location], self.get_location))
         self.dispatcher.addHandler(CallbackQueryHandler(self.inline_keyboard))
@@ -75,7 +76,7 @@ class RaccoonBot(object):
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
 
         self.queue = self.updater.start_polling()
-    
+
     @is_telegram_user
     def location(self, bot, update):
         chat_id = update.message.chat_id
@@ -113,8 +114,8 @@ class RaccoonBot(object):
                 print e
                 bot.sendMessage(chat_id=chat_id,
                                 text="Something goes wrong")
-                            
-    @is_telegram_user                            
+
+    @is_telegram_user
     def get_location(self, bot, update):
         latitude = update.message.location.latitude
         longitude = update.message.location.longitude
@@ -125,7 +126,6 @@ class RaccoonBot(object):
         UserLocation.objects.create(telegram_user=telegram_user,
                                     longitude=longitude,
                                     latitude=latitude)
-        user_courses = CourseEnrollment.enrollments_for_user(telegram_user.student)
         message = "There is no edX users nearby"
         your_location = (latitude, longitude)
         last_users_location = [UserLocation.objects.filter(telegram_user=each).last()
@@ -134,13 +134,13 @@ class RaccoonBot(object):
                              for each in last_users_location if each]
         distance_to_users.sort(key=lambda x: x[1])
         if distance_to_users:
-            message = "The closest edX user is just %.2f meters from you, their name are @%s, chat to them if you want ;)" %\
-                      (distance_to_users[0][1], distance_to_users[0][0].telegram_nick)
+            message = "The closest edX user is just %.2f meters from you, their name are @%s," \
+                      " chat to them if you want ;)" % (distance_to_users[0][1], distance_to_users[0][0].telegram_nick)
         bot.sendMessage(chat_id=chat_id,
                         text=message,
                         reply_markup=ReplyKeyboardHide())
-                        
-    @is_telegram_user                            
+
+    @is_telegram_user
     def near_courses_command(self, bot, update):
         chat_id = update.message.chat_id
         telegram_id = update.message.from_user.id
@@ -157,17 +157,17 @@ class RaccoonBot(object):
             users_with_location = [UserLocation.objects.filter(telegram_user=each).latest('timestamp')
                                    for each in telegram_users_in_courses]
             users_with_same_city = [each.telegram_user.telegram_nick
-                                   for each in users_with_location if each.city == last_location.city]
+                                    for each in users_with_location if each.city == last_location.city]
             random.shuffle(users_with_same_city)
             message = "There are no users in your city with the same enrollments :("
             if len(users_with_same_city) > 5:
                 random_users = random.randint(3, 5)
                 message = "There are %d users with the same enrollments in your city, here are some of them (%s)" %\
                           (len(users_with_same_city),
-                           ', '.join(map(lambda x: '@'+x, users_with_same_city[:random_users])))
+                           ', '.join(map(lambda x: '@' + x, users_with_same_city[:random_users])))
             elif len(users_with_same_city) > 0:
                 message = "There are user(s) with the same enrollments in your city %s" % \
-                          (', '.join(map(lambda x: '@'+x, users_with_same_city)))
+                          (', '.join(map(lambda x: '@' + x, users_with_same_city)))
             bot.sendMessage(chat_id=chat_id,
                             text=message)
 
@@ -206,7 +206,8 @@ class RaccoonBot(object):
         time.sleep(1)
         bot.sendPhoto(chat_id=update.message.chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
         bot.sendMessage(chat_id=chat_id,
-                        text="I have a lot of raccoon-workers, all of them want to help you, but they not very smart so they can understand only such commands:")
+                        text="I have a lot of raccoon-workers, all of them want to help you,"
+                             " but they not very smart so they can understand only such commands:")
 
         for (command, description) in self.commands.items():
             bot.sendMessage(chat_id=chat_id, text=command + ' - ' + description)
@@ -236,8 +237,8 @@ class RaccoonBot(object):
         telegram_id = telegram_user.telegram_id
         if not LearningPredictionForUser.objects.filter(telegram_user=telegram_user):
             bot.sendMessage(chat_id=chat_id,
-                            text="It seems like I see you for the first time,"\
-                                    " please answer a few questions, so I'll be know more about you")
+                            text="It seems like I see you for the first time,"
+                                 " please answer a few questions, so I'll be know more about you")
             prediction.get_test_courses(telegram_id)
         test_courses = LearningPredictionForUser.objects.get(telegram_user=telegram_user).get_list()
         if len(test_courses) > 0:
@@ -268,15 +269,15 @@ class RaccoonBot(object):
             course_for_user.prediction_course = predicted_course_key
             course_for_user.save()
             reply_markup = InlineKeyboardMarkup(
-                       [[InlineKeyboardButton(text='I like it and I want to enroll',
-                                              callback_data=json.dumps({'method': 'enroll',
-                                                                        'kwargs': {}}))],
-                        [InlineKeyboardButton(text='I like it but will eroll another time',
-                                              callback_data=json.dumps({'method': 'not_enroll',
-                                                                        'kwargs': {}}))],
-                        [InlineKeyboardButton(text="What the shit is this (I don't like it)",
-                                              callback_data=json.dumps({'method': 'wrong_predict',
-                                                                        'kwargs': {}}))]])
+                               [[InlineKeyboardButton(text='I like it and I want to enroll',
+                                                      callback_data=json.dumps({'method': 'enroll',
+                                                                                'kwargs': {}}))],
+                                [InlineKeyboardButton(text='I like it but will eroll another time',
+                                                      callback_data=json.dumps({'method': 'not_enroll',
+                                                                                'kwargs': {}}))],
+                                [InlineKeyboardButton(text="What the shit is this (I don't like it)",
+                                                      callback_data=json.dumps({'method': 'wrong_predict',
+                                                                                'kwargs': {}}))]])
 
         course_description = CourseDetails.fetch_about_attribute(course_key, 'overview')
         course_title = modulestore().get_course(course_key).display_name_with_default
@@ -329,7 +330,7 @@ class RaccoonBot(object):
             if cr:
                 user_vector.vector = matrix[learning_lessons.get_list()[0]]
             else:
-                user_vector.vector = user_vector.vector+matrix[learning_lessons.get_list()[0]]
+                user_vector.vector = user_vector.vector + matrix[learning_lessons.get_list()[0]]
             user_vector.save()
         learning_lessons.save_list(learning_lessons.get_list()[1:])
         bot.sendMessage(chat_id=chat_id, text="Ok, let's go on")
@@ -419,7 +420,8 @@ class RaccoonBot(object):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         message = update.message.text
-        text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
+        text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll" \
+               " try /help page to improve our communication?"
         sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
         reply_markup = telegram.ReplyKeyboardMarkup([[]])
         if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
@@ -438,7 +440,8 @@ class RaccoonBot(object):
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         time.sleep(1)
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
-        message = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?"
+        message = "Sorry, bro. I'm just a little raccoon and I don't know such words. " \
+                  "Maybe you'll try /help page to improve our communication?"
         bot.sendMessage(chat_id=chat_id,
                         text=message)
 
@@ -461,5 +464,4 @@ class RaccoonBot(object):
         def job(bot):
             bot.sendMessage(chat_id=chat_id, text='30 seconds passed and I want to remind'
                                                   ' you that you are fucking idiot')
-
         self.j.put(job, 30, repeat=False)
