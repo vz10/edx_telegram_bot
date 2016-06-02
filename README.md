@@ -32,7 +32,7 @@ In `lms/envs/common.py` :
     ```
     ...
     
-    MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx_telegram_bot/templates/lms'] + \
+    MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx_telegram_bot/edx_telegram_bot/templates/lms'] + \
                              MAKO_TEMPLATES['main']
     ...
     ```
@@ -55,7 +55,7 @@ In `cms/envs/common.py` :
     ```
     ...
     
-    MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx-telegram-bot/edx_telegram_bot/templates/cms'] + \
+    MAKO_TEMPLATES['main'] = ['/edx/app/edxapp/edx-platform/edx_telegram_bot/edx_telegram_bot/templates/cms'] + \
                              MAKO_TEMPLATES['main']
     ...
     ```
