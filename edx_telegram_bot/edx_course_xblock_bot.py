@@ -20,6 +20,8 @@ from submissions import api
 
 from models import (EdxTelegramUser, UserCourseProgress, BotFriendlyCourses, TelegramBot)
 from decorators import is_telegram_user
+from bot_mongo import BotMongo
+
 
 import logging
 logging.basicConfig(level=logging.DEBUG,
@@ -77,6 +79,7 @@ class CourseBot(object):
         # self.dispatcher.addHandler(CommandHandler('reminder', self.reminder))
         self.dispatcher.addErrorHandler(self.error)
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
+        self.mongo_client = BotMongo(database='bot', collection='messages')
         self.queue = self.updater.start_polling()
 
     @property
@@ -87,11 +90,21 @@ class CourseBot(object):
             return None
 
     def sendMessage(self, bot, chat_id, text='', reply_markup=None, parse_mode=telegram.ParseMode.HTML):
+        # a = {}
+        # if reply_markup:
+        #     for each in reply_markup.inline_keyboard:
+        #         for key in each:
+        #             data = json.loads(key.to_dict()['callback_data'])
+        #             a[str(data['n'])] = key.to_dict()['text']
         if self.course_key:
-            bot.sendMessage(chat_id=chat_id,
-                            text=text,
-                            reply_markup=reply_markup,
-                            parse_mode=parse_mode)
+            msg = bot.sendMessage(chat_id=chat_id,
+                                  text=text,
+                                  reply_markup=reply_markup,
+                                  parse_mode=parse_mode)
+            # self.mongo_client.send({'message_id': msg.message_id,
+            #                         'chat_id': chat_id,
+            #                         'text': text,
+            #                         'keyboard': a})
         else:
             bot.sendMessage(chat_id=chat_id,
                             text="I'm not connected to any course right now",
@@ -347,8 +360,11 @@ class CourseBot(object):
         chat_id = update.callback_query.message.chat.id
         message_id = update.callback_query.message.message_id
         bot.editMessageReplyMarkup(chat_id=chat_id, message_id=message_id)
+        # message = self.mongo_client.find_one({'message_id': message_id, 'chat_id': chat_id})
+
         if self.course_key:
-            answer = json.loads(update.callback_query.data)
+            answer = json.loads(update.callback_query.data)         
+            # self.sendMessage(bot, chat_id, message['keyboard'][str(answer['n'])])
             telegram_id = update.callback_query.from_user.id
             telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
             bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
