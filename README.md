@@ -19,6 +19,7 @@ In `lms/envs/common.py` :
     ...
     ```
 - add telegram bot to installed application list
+
     ```
     ...
     INSTALLED_APPS = {
