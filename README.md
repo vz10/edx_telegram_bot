@@ -4,8 +4,7 @@ Connect to vagrant via ssh. By user **edxapp** run following commands:
 
 ```
 cd /edx/app/edxapp/edx-platform/
-git clone https://github.com/vz10/raccoonBot.git
-mv raccoonBot edx_telegram_bot
+git clone https://github.com/vz10/edx_telegram_bot.git
 pip install -e edx_telegram_bot
 ```
 
