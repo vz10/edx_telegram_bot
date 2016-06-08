@@ -8,15 +8,20 @@ git clone https://github.com/vz10/edx_telegram_bot.git
 pip install -e edx_telegram_bot
 ```
 
+In 'lms/urls.py' :
+
+- add to the end of file
+
+    ```
+    ...
+    urlpatterns += (
+        url(r'^bot/', include('edx_telegram_bot.edx_telegram_bot.urls')),
+    )
+    ...
+    ```
+
 In `lms/envs/common.py` :
 
-- override default url with new endpoints
-    ```
-    ...
-    
-    ROOT_URLCONF = 'edx_telegram_bot.edx_telegram_bot.urls'
-    ...
-    ```
 - add telegram bot to installed application list
 
     ```

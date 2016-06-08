@@ -16,6 +16,12 @@ class BotMongo(MongoBackend):
     def get_all_courses(self):
         return self.database.collection_names()
 
+    def check_index(self):
+        return self.database.collection.index_information()
+
+    def set_index(self, *args):
+        return self.database.collection.create_index(*args)
+
     def upsert(self, document):
         print document
         self.collection.save(document)

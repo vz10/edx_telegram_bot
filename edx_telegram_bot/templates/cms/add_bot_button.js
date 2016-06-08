@@ -14,7 +14,7 @@ var add_button = $('.add-bot'),
 //     success_text = "";
 
 function check_course(method){
-    var url = "/api/bot/bot_course/";
+    var url = "/bot/api/bot_course/";
     var data = window.location.pathname;
  	$.ajax({
         // url: 'http://127.0.0.1:8000' + url,

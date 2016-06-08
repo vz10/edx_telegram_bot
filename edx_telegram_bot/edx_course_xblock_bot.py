@@ -3,6 +3,7 @@ import time
 import telegram
 import random
 import json
+import pymongo
 from bs4 import BeautifulSoup
 from telegram import ChatAction, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, RegexHandler, CallbackQueryHandler
@@ -40,6 +41,11 @@ bot_messages = {
     'correct_answer': "Great answer, you've got %d points fot that question",
     'incorrect_answer': 'Incorrect answer :('
 }
+
+
+content_method = {'video': 'sendVideo',
+                  'paragraph': 'sendMessage',
+                  'image': 'sendPhoto'}
 
 
 class CourseBot(object):
@@ -80,7 +86,14 @@ class CourseBot(object):
         self.dispatcher.addErrorHandler(self.error)
         self.dispatcher.addHandler(RegexHandler(r'/.*', self.unknown))
         self.mongo_client = BotMongo(database='bot', collection='messages')
+        self.check_or_create_mongo_index()
         self.queue = self.updater.start_polling()
+
+    def check_or_create_mongo_index(self):
+        print self.mongo_client.check_index()
+        if 'message_id_1_chat_id_1' not in self.mongo_client.check_index():
+            print self.mongo_client.set_index([('message_id', pymongo.ASCENDING),('chat_id',pymongo.ASCENDING)])
+            import pdb; pdb.set_trace()
 
     @property
     def course_key(self):
@@ -89,26 +102,27 @@ class CourseBot(object):
         except AttributeError:
             return None
 
-    def sendMessage(self, bot, chat_id, text='', reply_markup=None, parse_mode=telegram.ParseMode.HTML):
-        # a = {}
-        # if reply_markup:
-        #     for each in reply_markup.inline_keyboard:
-        #         for key in each:
-        #             data = json.loads(key.to_dict()['callback_data'])
-        #             a[str(data['n'])] = key.to_dict()['text']
+    def sendMessage(self, bot, chat_id, 
+                    content='', content_type='paragraph', 
+                    keyboard_dict=None, parse_mode=telegram.ParseMode.HTML):
+        reply_markup = None
         if self.course_key:
-            msg = bot.sendMessage(chat_id=chat_id,
-                                  text=text,
-                                  reply_markup=reply_markup,
-                                  parse_mode=parse_mode)
-            # self.mongo_client.send({'message_id': msg.message_id,
-            #                         'chat_id': chat_id,
-            #                         'text': text,
-            #                         'keyboard': a})
+            if keyboard_dict:
+                keyboard = map(lambda item: [InlineKeyboardButton(text=keyboard_dict[item]['text'],
+                                                                  callback_data=json.dumps({'key_id':item}))],
+                               keyboard_dict)
+                reply_markup = InlineKeyboardMarkup(keyboard)
+            msg = getattr(bot, content_method[content_type])(chat_id, 
+                                                             content, 
+                                                             reply_markup=reply_markup,
+                                                             parse_mode=parse_mode)
+            self.mongo_client.send({'message_id': msg.message_id,
+                                    'chat_id': chat_id,
+                                    'text': content,
+                                    'keyboard': keyboard_dict})
         else:
             bot.sendMessage(chat_id=chat_id,
                             text="I'm not connected to any course right now",
-                            reply_markup=reply_markup,
                             parse_mode=parse_mode)
 
     def get_xblock_for_step(self, step, telegram_user):
@@ -184,29 +198,36 @@ class CourseBot(object):
                                        container.question_part +
                                        container.positive_part)
 
-    def send_message_from_html_dict(self, bot, chat_id, message, reply_markup):
-        if message['type'] == 'paragraph':
-            self.sendMessage(bot,
-                             chat_id=chat_id,
-                             text=message['content'],
-                             reply_markup=reply_markup)
-        elif message['type'] == 'image':
-            bot.sendPhoto(chat_id=chat_id,
-                          reply_markup=reply_markup,
-                          photo=message['content'].encode('utf-8', 'strict'))
-        elif message['type'] == 'video':
-            bot.sendVideo(chat_id=chat_id,
-                          reply_markup=reply_markup,
-                          video=message['content'].encode('utf-8', 'strict'))
+    def send_message_from_html_dict(self, bot, chat_id, message, keyboard_dict):
+        # if message['type'] == 'paragraph':
+        #     self.sendMessage(bot,
+        #                      chat_id=chat_id,
+        #                      text=message['content'],
+        #                      keyboard_dict=keyboard_dict)
+        # elif message['type'] == 'image':
+        #     self.sendPhoto(bot,
+        #                   chat_id=chat_id,
+        #                   photo=message['content'].encode('utf-8', 'strict'),
+        #                   keyboard_dict=keyboard_dict)
+        # elif message['type'] == 'video':
+        #     self.sendVideo(bot,
+        #                   chat_id=chat_id,
+        #                   video=message['content'].encode('utf-8', 'strict'),
+        #                   keyboard_dict=keyboard_dict)
+
+        self.sendMessage(bot, 
+                         chat_id=chat_id,
+                         content=message['content'].encode('utf-8', 'strict'),
+                         content_type=message['type'],
+                         keyboard_dict=keyboard_dict)
 
     def output_non_question_xblock(self, bot, chat_id, message_dict, final_message, params_dict):
-        reply_markup = None
+        keyboard_dict = None
         for count, each in enumerate(message_dict):
             if count == len(message_dict) - 1:
-                keyboard = InlineKeyboardButton(text=final_message,
-                                                callback_data=json.dumps(params_dict))
-                reply_markup = InlineKeyboardMarkup([[keyboard]])
-            self.send_message_from_html_dict(bot, chat_id, each, reply_markup)
+                keyboard_dict = {'0': {'text': final_message,
+                                       'callback_data': params_dict}}     
+            self.send_message_from_html_dict(bot, chat_id, each, keyboard_dict)
 
     @staticmethod
     def get_question_for_block(container, question_block_numpber):
@@ -225,7 +246,7 @@ class CourseBot(object):
         print (update)
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        self.sendMessage(bot, chat_id=chat_id, text=bot_messages['hi'])
+        self.sendMessage(bot, chat_id=chat_id, content=bot_messages['hi'])
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD7wEAAmONagABIoEfTRQCUCQC')
 
     def unknown(self, bot, update):
@@ -238,14 +259,14 @@ class CourseBot(object):
                   """
         self.sendMessage(bot,
                          chat_id=chat_id,
-                         text=message)
+                         content=message)
 
     @is_telegram_user
     def start(self, bot, update):
         chat_id = update.message.chat_id
         self.sendMessage(bot=bot,
                          chat_id=chat_id,
-                         text="Hi, let's start out course")
+                         content="Hi, let's start out course")
         if self.course_key:
             telegram_id = update.message.from_user.id
             telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
@@ -256,7 +277,7 @@ class CourseBot(object):
     def restart(self, bot, update):
         chat_id = update.message.chat_id
         self.sendMessage(bot=bot, chat_id=chat_id,
-                         text="Let's start from scratch")
+                         content="Let's start from scratch")
         if self.course_key:
             telegram_id = update.message.from_user.id
             telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
@@ -272,11 +293,11 @@ class CourseBot(object):
         bot.sendPhoto(chat_id=chat_id, photo='https://raccoongang.com/media/img/raccoons.jpg')
         self.sendMessage(bot,
                          chat_id=chat_id,
-                         text="I have a lot of raccoon-workers, all of them want to help you, but they not"
+                         content="I have a lot of raccoon-workers, all of them want to help you, but they not"
                               " very smart so they can understand only such commands:")
 
         for (command, description) in self.commands.items():
-            self.sendMessage(bot, chat_id=chat_id, text=command + ' - ' + description)
+            self.sendMessage(bot, chat_id=chat_id, content=command + ' - ' + description)
 
     def not_know(self, bot, chat_id, telegram_user):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
@@ -315,7 +336,7 @@ class CourseBot(object):
         progress.block_in_status += 1
         # Check passing grade if it was the last question in Xblock
         if progress.block_in_status == current_step.question_part:
-            self.sendMessage(bot, chat_id=chat_id, text=message)
+            self.sendMessage(bot, chat_id=chat_id, content=message)
             if progress.grade_for_step >= current_step.passing_grade:
                 course_key = CourseKey.from_string(self.course_key)
                 bot_xblocks_count = len(get_course_blocks(course_key, self.category))
@@ -334,7 +355,7 @@ class CourseBot(object):
                     progress.current_step_status = UserCourseProgress.STATUS_START
                 else:
                     message = "You've completed this course"
-                    self.sendMessage(bot, chat_id=chat_id, text=message)
+                    self.sendMessage(bot, chat_id=chat_id, content=message)
                     progress.current_step_status = UserCourseProgress.STATUS_END
 
             else:
@@ -346,29 +367,30 @@ class CourseBot(object):
                                                 {'method': 'not_know',
                                                  'kwargs': {}})
         else:
-            keyboard = InlineKeyboardButton(text=bot_messages['next_question'],
-                                            callback_data=json.dumps({'method': 'show_progress',
-                                                                      'kwargs': {}}))
-            reply_markup = InlineKeyboardMarkup([[keyboard]])
+            keyboard_dict = {'0':{'text': bot_messages['next_question'],
+                                  'callback_data': {'method': 'show_progress',
+                                                    'kwargs': {}}}}
             self.sendMessage(bot,
                              chat_id=chat_id,
-                             text=message,
-                             reply_markup=reply_markup)
+                             content=message,
+                             keyboard_dict=keyboard_dict)
         progress.save()
 
     def inline_keyboard(self, bot, update):
         chat_id = update.callback_query.message.chat.id
         message_id = update.callback_query.message.message_id
         bot.editMessageReplyMarkup(chat_id=chat_id, message_id=message_id)
-        # message = self.mongo_client.find_one({'message_id': message_id, 'chat_id': chat_id})
+        message = self.mongo_client.find_one({'message_id': message_id, 'chat_id': chat_id})
 
         if self.course_key:
             answer = json.loads(update.callback_query.data)         
-            # self.sendMessage(bot, chat_id, message['keyboard'][str(answer['n'])])
+            self.sendMessage(bot, chat_id, message['keyboard'][answer['key_id']]['text'])
+            method = message['keyboard'][answer['key_id']]['callback_data']['method']
+            kwargs = message['keyboard'][answer['key_id']]['callback_data']['kwargs']
             telegram_id = update.callback_query.from_user.id
             telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
             bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-            getattr(self, answer['method'])(bot, chat_id, telegram_user, **answer['kwargs'])
+            getattr(self, method)(bot, chat_id, telegram_user, **kwargs)
         else:
             self.sendMessage(bot, chat_id)
 
@@ -376,33 +398,30 @@ class CourseBot(object):
         progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
         current_step = self.get_xblock_for_step(progress.current_step_order, telegram_user)
         if progress.current_step_status == UserCourseProgress.STATUS_START:
-            help_button = InlineKeyboardButton(text=bot_messages['help_now'],
-                                               callback_data=json.dumps({'method': 'ready', 'kwargs': {}}))
-            not_know_button = InlineKeyboardButton(text=bot_messages['not_know'],
-                                                   callback_data=json.dumps({'method': 'not_know', 'kwargs': {}}))
-            reply_markup = InlineKeyboardMarkup([[help_button], [not_know_button]])
+            keyboard_dict = {'0': {'text': bot_messages['help_now'],
+                                   'callback_data': {'method': 'ready', 'kwargs': {}}},
+                             '1': {'text': bot_messages['not_know'],
+                                   'callback_data': {'method': 'not_know', 'kwargs': {}}}}
             message = self.get_block_title(current_step)
             self.sendMessage(bot,
                              chat_id=chat_id,
-                             text=message,
-                             reply_markup=reply_markup)
+                             content=message,
+                             keyboard_dict=keyboard_dict)
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
             question, wrong_answers, right_answer, weight = self.get_question_for_block(current_step,
                                                                                         progress.block_in_status)
-            answers = [InlineKeyboardButton(text=each,
-                                            callback_data=json.dumps({'method': 'check',
-                                                                      'kwargs': {'weight': 0}}))
-                       for each in wrong_answers] +\
-                      [InlineKeyboardButton(text=right_answer[0],
-                                            callback_data=json.dumps({'method': 'check',
-                                                                      'kwargs': {'weight': weight}}))]
-            random.shuffle(answers)
+            keyboard_dict = {str(num): {'text': each,
+                                        'callback_data': {'method': 'check',
+                                                          'kwargs': {'weight': 0}}}
+                            for num, each in enumerate(wrong_answers)}
+            keyboard_dict['right'] = {'text': right_answer[0],
+                                      'callback_data': {'method': 'check',
+                                                        'kwargs': {'weight': weight}}}
             message = question
-            reply_markup = InlineKeyboardMarkup([[each] for each in answers])
             self.sendMessage(bot,
                              chat_id=chat_id,
-                             text=message,
-                             reply_markup=reply_markup)
+                             content=message,
+                             keyboard_dict=keyboard_dict)
         if progress.current_step_status == UserCourseProgress.STATUS_INFO:
             message_dict = self.get_html_for_block(current_step, progress.block_in_status)
             progress.block_in_status += 1
@@ -430,15 +449,15 @@ class CourseBot(object):
         if progress.current_step_status == UserCourseProgress.STATUS_END:
             self.sendMessage(bot,
                              chat_id=chat_id,
-                             text=bot_messages['finish'])
+                             content=bot_messages['finish'])
             return
         self.unknown(bot, update)
 
     def die(self, bot, update):
         chat_id = update.message.chat_id
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
-        self.sendMessage(bot, chat_id=chat_id, text='AAAAAAAA!!!! You kill me, motherfucker')
-        self.sendMessage(bot, chat_id=chat_id, text="But I'll be back!!!!")
+        self.sendMessage(bot, chat_id=chat_id, content='AAAAAAAA!!!! You kill me, motherfucker')
+        self.sendMessage(bot, chat_id=chat_id, content="But I'll be back!!!!")
         self.updater.stop()
 
     @staticmethod
@@ -450,7 +469,7 @@ class CourseBot(object):
         chat_id = update.message.chat_id
 
         def job(bot):
-            self.sendMessage(bot, chat_id=chat_id, text='30 seconds passed and I want to'
+            self.sendMessage(bot, chat_id=chat_id, content='30 seconds passed and I want to'
                                                         ' remind you that you are fucking idiot')
 
         self.j.put(job, 30, repeat=False)

@@ -30,7 +30,7 @@ def someone_enrolls(sender, instance, **kwargs):
         course_title = modulestore().get_course(instance.course_id).display_name_with_default
         if course_bot:
             message = "I see you've enrolled to the *%s*. There is a bot [%s](https://telegram.me/%s?start=start)"\
-                       " linked to the course, I recommend you to chat with him" %\
+                      " linked to the course, I recommend you to chat with him" %\
                        (course_title, course_bot.bot_name, course_bot.bot_name)
             bot.sendMessage(chat_id=telegram_user.telegram_id,
                             text=message,

@@ -20,7 +20,6 @@ def get_coursed_and_create_matrix():
     results = [course for course in modulestore().get_courses() if
                course.scope_ids.block_type == 'course']
     new_matrix = TfidMatrixAllCourses.objects.all().first() or TfidMatrixAllCourses()
-    print new_matrix.matrix.shape[0] != len(results)
     if new_matrix.matrix.shape[0] != len(results):
         all_courses = [re.sub('<[^>]*>', '', CourseDetails.fetch_about_attribute(x.id, 'overview')) for x in results]
 
