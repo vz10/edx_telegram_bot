@@ -1,20 +1,17 @@
  .telegram-auth {
      box-sizing: border-box;
      margin: 0 auto 0;
--    padding: 40px 0;
-+    padding: 20px 0;
-     max-width: 1180px;
+    padding: 40px 0;
      min-width: 760px;
      width: 100%;
  }
--
--.telegram-auth .telegram-get-token,
--.telegram-auth .token-block
--/*.telegram-auth .telegram-success*/
--{
--    display: none;
--}
--.telegram-auth .telegram-success{
--    color:green;
--}
-\ No newline at end of file
+
+.telegram-auth .telegram-get-token,
+.telegram-auth .token-block
+/*.telegram-auth .telegram-success*/
+{
+    display: none;
+}
+.telegram-auth .telegram-success{
+    color:green;
+}
