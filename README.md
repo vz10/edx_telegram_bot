@@ -8,7 +8,7 @@ git clone https://github.com/vz10/edx_telegram_bot.git
 pip install -e edx_telegram_bot
 ```
 
-In 'lms/urls.py' :
+In `lms/urls.py` :
 
 - add to the end of file
 
