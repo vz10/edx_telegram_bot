@@ -208,7 +208,6 @@ class BotFriendlyCourses(models.Model):
     List of courses which supports telegram bot
     """
     course_key = models.CharField(max_length=100, db_index=True)
-    bot = models.ForeignKey(TelegramBot, null=True)
-
+    bot = models.ForeignKey(TelegramBot)
 
 
