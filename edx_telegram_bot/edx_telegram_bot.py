@@ -305,8 +305,9 @@ class RaccoonBot(object):
         else:
             bot.sendSticker(chat_id=chat_id, sticker='BQADBAADCwIAAmONagABF1QQKl9NWncC')
             msg = "Just have a look what I've found for you"
-            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') +
-                         modulestore().get_course(course.id).display_name_with_default] for course in results]
+            course_names = [modulestore().get_course(course.id).display_name_with_default for course in results]
+            course_names.sort()
+            keyboard = [[Emoji.THUMBS_UP_SIGN.decode('utf-8') + course] for course in course_names]
             reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
             bot.sendMessage(chat_id=chat_id, text=msg, reply_markup=reply_markup)
 
