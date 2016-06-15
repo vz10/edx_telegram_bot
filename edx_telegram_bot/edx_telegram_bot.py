@@ -414,7 +414,6 @@ class RaccoonBot(object):
                     else:
                         bot.sendMessage(chat_id=chat_id, text=message)
                 break
-        bot.sendMessage(chat_id=chat_id, reply_markup=ReplyKeyboardHide())
 
     def echo(self, bot, update):
         chat_id = update.message.chat_id

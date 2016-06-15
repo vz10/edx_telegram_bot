@@ -210,4 +210,6 @@ class BotFriendlyCourses(models.Model):
     course_key = models.CharField(max_length=100, db_index=True)
     bot = models.ForeignKey(TelegramBot)
 
-
+    @property
+    def bot_name(self):
+        return self.bot.bot_name   
