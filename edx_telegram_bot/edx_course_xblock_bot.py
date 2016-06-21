@@ -445,12 +445,15 @@ class CourseBot(object):
         chat_id = update.message.chat_id
         telegram_id = update.message.from_user.id
         telegram_user = EdxTelegramUser.objects.get(telegram_id=telegram_id)
-        progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
-        if progress.current_step_status == UserCourseProgress.STATUS_END:
-            self.sendMessage(bot,
-                             chat_id=chat_id,
-                             content=bot_messages['finish'])
-            return
+        try:
+            progress = UserCourseProgress.objects.get(telegram_user=telegram_user, course_key=self.course_key)
+            if progress.current_step_status == UserCourseProgress.STATUS_END:
+                self.sendMessage(bot,
+                                 chat_id=chat_id,
+                                 content=bot_messages['finish'])
+                return
+        except Exception as e:
+            print e;
         self.unknown(bot, update)
 
     def die(self, bot, update):
