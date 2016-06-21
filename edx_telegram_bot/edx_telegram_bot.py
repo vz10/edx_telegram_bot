@@ -423,14 +423,12 @@ class RaccoonBot(object):
         text = "Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll" \
                " try /help page to improve our communication?"
         sticker = 'BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg'
-        reply_markup = telegram.ReplyKeyboardMarkup([[]])
         if message[0] == Emoji.THUMBS_UP_SIGN.decode('utf-8'):
             course_name = message[1:]
             self.get_course_description(bot, chat_id, course_name, enroll_keyboard=True)
             return
         bot.sendSticker(chat_id=chat_id, sticker=sticker)
         bot.sendMessage(chat_id=chat_id, text=text)
-        bot.sendMessage(chat_id=chat_id, reply_markup=reply_markup)
 
     def unknown(self, bot, update):
         """
