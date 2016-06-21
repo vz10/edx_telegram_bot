@@ -43,7 +43,7 @@ class CourseBot(object):
             # '/die': "Don't even think about it, motherfucker"
         }
 
-        self.updater = Updater(token=kwargs.get('token', 'course_name'), workers=10)
+        self.updater = Updater(token=kwargs.get('token', 'course_name'), workers=4)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 

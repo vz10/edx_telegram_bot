@@ -53,7 +53,7 @@ class RaccoonBot(object):
 
         prediction.get_coursed_and_create_matrix()
 
-        self.updater = Updater(token=settings.TELEGRAM_BOT.get('token'), workers=10)
+        self.updater = Updater(token=settings.TELEGRAM_BOT.get('token'), workers=4)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 

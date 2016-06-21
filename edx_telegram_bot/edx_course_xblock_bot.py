@@ -71,7 +71,7 @@ class CourseBot(object):
 
         self.token = kwargs.get('token', 'course_name')
         self.telegram_bot = TelegramBot.objects.get(token=self.token)
-        self.updater = Updater(token=self.token, workers=10)
+        self.updater = Updater(token=self.token, workers=4)
         self.dispatcher = self.updater.dispatcher
         self.j = self.updater.job_queue
 
