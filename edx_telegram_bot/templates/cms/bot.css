@@ -1,3 +1,11 @@
 .add-bot, .remove-bot {
   display: none;
 }
+
+.wrapper-mast .mast.has-actions .nav-actions {
+    width: 55%;
+}
+
+.wrapper-mast .mast.has-actions .page-header {
+   width: 42%
+}

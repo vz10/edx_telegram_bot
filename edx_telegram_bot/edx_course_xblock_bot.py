@@ -39,7 +39,8 @@ bot_messages = {
     'finish': 'The course is finished, there is no one at home, come later.',
     'hi': "Hi Earthman! I'm glad to see you",
     'correct_answer': "Great answer, you've got %d points fot that question",
-    'incorrect_answer': 'Incorrect answer :('
+    'incorrect_answer': 'Incorrect answer :(',
+    'no_xblock': "There is no information in this course, sorry. Myabye just tell me about yourself insted?"
 }
 
 
@@ -254,8 +255,7 @@ class CourseBot(object):
         bot.sendChatAction(chat_id=chat_id, action=ChatAction.TYPING)
         bot.sendSticker(chat_id=chat_id, sticker='BQADBAAD-wEAAmONagABdGfTKC1oAAGjAg')
         message = """
-                    Sorry, bro. I'm just a little raccoon and I don't know such words.
-                    Maybe you'll try /help page to improve our communication?
+                    Sorry, bro. I'm just a little raccoon and I don't know such words. Maybe you'll try /help page to improve our communication?
                   """
         self.sendMessage(bot,
                          chat_id=chat_id,
@@ -403,10 +403,16 @@ class CourseBot(object):
                              '1': {'text': bot_messages['not_know'],
                                    'callback_data': {'method': 'not_know', 'kwargs': {}}}}
             message = self.get_block_title(current_step)
-            self.sendMessage(bot,
-                             chat_id=chat_id,
-                             content=message,
-                             keyboard_dict=keyboard_dict)
+            if message :
+                self.sendMessage(bot,
+                                 chat_id=chat_id,
+                                 content=message,
+                                 keyboard_dict=keyboard_dict)
+            else:
+               self.sendMessage(bot,
+                                chat_id=chat_id,
+                                content=bot_messages['no_xblock']) 
+
         if progress.current_step_status == UserCourseProgress.STATUS_TEST:
             question, wrong_answers, right_answer, weight = self.get_question_for_block(current_step,
                                                                                         progress.block_in_status)
