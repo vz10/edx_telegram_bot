@@ -40,7 +40,7 @@ bot_messages = {
     'hi': "Hi Earthman! I'm glad to see you",
     'correct_answer': "Great answer, you've got %d points fot that question",
     'incorrect_answer': 'Incorrect answer :(',
-    'no_xblock': "There is no information in this course, sorry. Myabye just tell me about yourself insted?"
+    'no_xblock': "There is no information in this course, sorry. Maybe just tell me about yourself instead?"
 }
 
 
